@@ -1,24 +1,20 @@
 [package]
-name = "multi_hart_queue"
+name = "ssd_rs"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-# panic-halt = "1.0.0"
 riscv = "0.13.0"
 riscv-rt = "0.14.0"
-multi-hart-critical-section = { version = "0.1.0", features = ["critical-section-multi-hart"], git = "https://github.com/rust-for-ssd/multi-hart-critical-section.git" }
-critical-section = { version = "1.2.0", features = ["restore-state-usize"] } 
-qemu_uart = { git = "https://github.com/rust-for-ssd/qemu_uart", version = "0.1.0" }
 semihosting = { version = "0.1.19", features = ["panic-handler", "stdio"] }
-panic-halt = "1.0.0"
-embedded-alloc = "0.6.0"
+rv_unit = { git = "https://github.com/rust-for-ssd/rv_unit.git" }
 
-
-[profile.devtest]
+[profile.small_release]
 inherits = "release"
 opt-level = "s"
 
 [lib]
+name = "ssd_rs"
+# crate-type = ["lib", "staticlib"]
 test = false
 harness = false
