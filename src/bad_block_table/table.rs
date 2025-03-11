@@ -1,42 +1,59 @@
+use crate::media_manager::stub::{MediaManger, PhysicalBlockAddress};
+
 struct BadBlockTable<'c> {
     channels: &'c mut [Channel<'c>],
     size: usize,
     n_bad_blocks: usize,
 }
 
-struct Channel<'pu> {
-    parallel_units: &'pu mut [ParallelUnit<'pu>],
+struct Channel<'lun> {
+    luns: &'lun mut [LUN<'lun>],
     n_parallel_units: usize,
-    id: usize,
+    // id: usize,
 }
 
-struct ParallelUnit<'c> {
-    chunks: &'c mut [Chunk<'c>],
+struct LUN<'p> {
+    planes: &'p mut [Plane<'p>],
     n_chunks: usize,
-    id: usize,
+    // id: usize,
 }
 
-struct Chunk<'pb> {
-    plane_blocks: &'pb mut [PlaneBlock],
-    n_plane_blocks: usize,
-    id: usize,
-}
-
-struct PlaneBlock {
+struct Plane<'b> {
+    blocks: &'b mut [IsBadBlock],
+    // blocks: &'b mut [Block<'b>],
     n_planes: u8,
-    id: usize,
+    // id: usize,
 }
+
+// TODO: find a better name?
+type IsBadBlock = bool;
+
+// struct Block<'p> {
+//     pages: &'p mut [bool], // WARN: we might not need this
+//     n_plane_blocks: usize,
+//     // id: usize,
+// }
 
 impl<'c> BadBlockTable<'c> {
+    fn new() -> Self {
+        // we need the dimentions, maybe we get this from the media manager?
+        // we need the place to store the table, this can be static or on the heap?
+        todo!()
+    }
+
     fn init(&mut self) {
-        for channel in &mut *self.channels {
-            for pu in &mut *channel.parallel_units {
-                for chunk in &mut *pu.chunks {
-                    for plane_block in &mut *chunk.plane_blocks {
-                        let is_bad = plane_block.health_check();
-                        if is_bad {
-                            // Mark as bad somehow
-                        }
+        for (channel_id, channel) in self.channels.iter_mut().enumerate() {
+            for (lun_id, lun) in channel.luns.iter_mut().enumerate() {
+                for (plane_id, plane) in lun.planes.iter_mut().enumerate() {
+                    for (block_id, block) in plane.blocks.iter_mut().enumerate() {
+                        let pba: PhysicalBlockAddress = PhysicalBlockAddress {
+                            channel: channel_id,
+                            lun: lun_id,
+                            plane: plane_id as u8,
+                            block: block_id,
+                        };
+
+                        *block = is_block_bad(&pba);
                     }
                 }
             }
@@ -44,9 +61,9 @@ impl<'c> BadBlockTable<'c> {
     }
 }
 
-impl PlaneBlock {
-    fn health_check(&self) -> bool {
-        // do a call to the media manager
-        false
+fn is_block_bad(pba: &PhysicalBlockAddress) -> IsBadBlock {
+    match MediaManger::erase_block(pba) {
+        Ok(()) => false,
+        Err(_) => true,
     }
 }
