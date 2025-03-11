@@ -1,9 +1,9 @@
 pub struct PhysicalPageAddress {
-    channel: usize,
-    lun: usize,
-    plane: u8,
-    block: usize,
-    page: usize,
+    pub channel: usize,
+    pub lun: usize,
+    pub plane: u8,
+    pub block: usize,
+    pub page: usize,
 }
 
 pub struct PhysicalBlockAddress {
@@ -13,9 +13,20 @@ pub struct PhysicalBlockAddress {
     pub block: usize,
 }
 
-pub struct MediaManger {}
+// NOTE: MediaManager should contain Safe C-wrappers around whatever MM strub we get from Ivan
+pub struct MediaManger {
+    pub n_luns: usize,
+    pub n_planes: usize,
+    pub n_blocks: usize,
+}
 
-type C_ERR = usize;
+pub type C_ERR = usize;
+
+pub static MEDIA_MANAGER: MediaManger = MediaManger {
+    n_luns: 32,
+    n_planes: 2,
+    n_blocks: 64,
+};
 
 impl MediaManger {
     pub fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), C_ERR> {
@@ -28,6 +39,18 @@ impl MediaManger {
     }
 
     pub fn write_page(ppa: &PhysicalPageAddress) -> Result<(), C_ERR> {
+        todo!()
+    }
+}
+
+impl PhysicalPageAddress {
+    pub fn is_reserved(&self) -> bool {
+        todo!()
+    }
+}
+
+impl PhysicalBlockAddress {
+    pub fn is_reserved(&self) -> bool {
         todo!()
     }
 }
