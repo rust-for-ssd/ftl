@@ -83,14 +83,16 @@ impl BadBlockChannelTable {
     }
 
     fn flush(&mut self) -> Result<(), C_ERR> {
+        self.current_page = (self.current_page + 1) % MEDIA_MANAGER.n_pages;
+
         let ppa = &PhysicalPageAddress {
             channel: self.channel_id,
             lun: 0,
             plane: 0,
             block: 0,
-            page: self.current_page + 1,
+            page: self.current_page,
         };
-        self.current_page += 1;
+
         return MediaManger::write_page(ppa);
     }
 }

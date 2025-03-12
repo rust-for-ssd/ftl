@@ -18,6 +18,7 @@ pub struct MediaManger {
     pub n_luns: usize,
     pub n_planes: usize,
     pub n_blocks: usize,
+    pub n_pages: usize,
 }
 
 pub type C_ERR = usize;
@@ -26,6 +27,7 @@ pub static MEDIA_MANAGER: MediaManger = MediaManger {
     n_luns: 32,
     n_planes: 2,
     n_blocks: 64,
+    n_pages: 8,
 };
 
 impl MediaManger {
