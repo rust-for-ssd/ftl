@@ -8,6 +8,7 @@ struct BadBlockChannelTable {
     channel: Channel,
     channel_id: usize,
     current_page: usize,
+    version: usize
 }
 
 #[derive(Copy, Clone)]
@@ -60,6 +61,7 @@ impl BadBlockChannelTable {
             channel,
             channel_id,
             current_page: 0,
+            version: 0,
         }
     }
 
@@ -84,6 +86,7 @@ impl BadBlockChannelTable {
 
     fn flush(&mut self) -> Result<(), C_ERR> {
         self.current_page = (self.current_page + 1) % MEDIA_MANAGER.n_pages;
+        self.version += 1;
 
         let ppa = &PhysicalPageAddress {
             channel: self.channel_id,
@@ -95,4 +98,34 @@ impl BadBlockChannelTable {
 
         return MediaManger::write_page(ppa);
     }
+
+    fn restore_state_from_boot(&mut self) -> Result<Self, C_ERR> {
+        // assumption: the bb table can be contained in a single page
+
+        let latest_version = 0; 
+
+        for page in 0..MEDIA_MANAGER.n_pages {
+
+            let ppa = &PhysicalPageAddress {
+                channel: self.channel_id,
+                lun: 0,
+                plane: 0,
+                block: 0,
+                page: page,
+            };
+
+            let table_from_disk = MediaManger::read_page(ppa)? as BadBlockChannelTable; //throws Err is unpack fails
+
+            if (latest_version < table_from_disk.version) {
+                latest_version = table_from_disk.version;
+            } else { 
+                return Ok(table_from_disk);
+            }
+        }
+
+        Err(1)
+        
+    }
 }
+
+

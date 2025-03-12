@@ -19,6 +19,7 @@ pub struct MediaManger {
     pub n_planes: usize,
     pub n_blocks: usize,
     pub n_pages: usize,
+    pub bytes_per_page: usize,
 }
 
 pub type C_ERR = usize;
@@ -28,6 +29,7 @@ pub static MEDIA_MANAGER: MediaManger = MediaManger {
     n_planes: 2,
     n_blocks: 64,
     n_pages: 8,
+    bytes_per_page: 128,
 };
 
 impl MediaManger {
@@ -35,7 +37,7 @@ impl MediaManger {
         todo!()
     }
 
-    pub fn read_page(ppa: &PhysicalPageAddress) -> Result<(), C_ERR> {
+    pub fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, C_ERR> {
         // TODO: should have a proper return type instead of Ok(())
         todo!()
     }
