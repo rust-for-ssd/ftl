@@ -1,24 +1,24 @@
 #[derive(Copy, Clone)]
-pub struct RingBuffer<T: Copy, const SIZE: usize> {
+pub struct RingBuffer<T: Copy, const CAPACITY: usize> {
     head: usize,
     tail: usize,
-    buffer: [Option<T>; SIZE],
+    buffer: [Option<T>; CAPACITY],
     size: usize,
 }
 
-impl<T: Copy, const SIZE: usize> RingBuffer<T, SIZE> {
+impl<T: Copy, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
     pub fn new() -> Self {
         RingBuffer {
             head: 0,
             tail: 0,
-            buffer: [None; SIZE],
+            buffer: [None; CAPACITY],
             size: 0,
         }
     }
 
     pub fn push(&mut self, value: T) -> () {
         self.buffer[self.head] = Some(value);
-        self.head = (self.head + 1) % SIZE;
+        self.head = (self.head + 1) % CAPACITY;
         self.size += 1;
     }
 
@@ -28,7 +28,7 @@ impl<T: Copy, const SIZE: usize> RingBuffer<T, SIZE> {
         }
 
         let res = self.buffer[self.tail];
-        self.tail = (self.tail + 1) % SIZE;
+        self.tail = (self.tail + 1) % CAPACITY;
         self.size -= 1;
         return res;
     }
