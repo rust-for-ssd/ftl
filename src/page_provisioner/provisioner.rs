@@ -1,8 +1,9 @@
 // Page provison: gives a physical page adress (ppa) to an available page
 
 use crate::{
+    bad_block_table::table::IS_NOT_BAD_BLOCK,
     media_manager::stub::{
-        C_ERR, MEDIA_MANAGER, N_BLOCKS_PER_LUN, PhysicalBlockAddress, PhysicalPageAddress,
+        MEDIA_MANAGER, N_BLOCKS_PER_LUN, PhysicalBlockAddress, PhysicalPageAddress,
     },
     utils::ring_buffer::RingBuffer,
 };
@@ -20,11 +21,14 @@ impl GlobalProvisoner {
     }
 }
 
+use crate::bad_block_table::table::ChannelBadBlockTable;
+
 struct ChannelProvisioner {
     luns: [LUN; MEDIA_MANAGER.n_luns],
     n_luns: usize,
     last_lun_picked: usize,
     channel_id: usize,
+    bbt: ChannelBadBlockTable,
 }
 
 #[derive(Copy, Clone)]
@@ -33,6 +37,7 @@ struct LUN {
     free: RingBuffer<Block, N_BLOCKS_PER_LUN>,
     used: RingBuffer<Block, N_BLOCKS_PER_LUN>,
     partially_used: RingBuffer<BlockWithPageInfo, N_BLOCKS_PER_LUN>,
+    // partial_page_count: usize,
 }
 
 #[derive(Copy, Clone)]
@@ -51,57 +56,70 @@ struct BlockWithPageInfo {
 
 #[derive(Copy, Clone)]
 struct Page {
-    dirty: bool,
+    in_use: bool,
+}
+
+enum ProvisionError {
+    NoFreeBlock,
+    NoFreePage,
 }
 
 impl ChannelProvisioner {
-    fn provision_block(&mut self) -> Result<PhysicalBlockAddress, C_ERR> {
+    fn provision_block(&mut self) -> Result<PhysicalBlockAddress, ProvisionError> {
         for _i in 0..MEDIA_MANAGER.n_luns {
             self.last_lun_picked = (self.last_lun_picked + 1) % MEDIA_MANAGER.n_luns;
             let mut lun = self.luns[self.last_lun_picked];
             // 1. pick a lun
             // 2. get a free block from the lun if there is any
-            // 3. move the block from free to used
-            // 4. return the pba
+            // 3. check if it is bad
+            // 4. move the block from free to used
+            // 5. return the pba
             if let Some(block) = lun.free.pop() {
-                lun.used.push(block);
                 let pba = PhysicalBlockAddress {
                     channel: self.channel_id,
                     lun: self.last_lun_picked,
                     plane: block.plane_id as u8,
                     block: block.id,
                 };
-                return Ok(pba);
+
+                if let Ok(IS_NOT_BAD_BLOCK) = self.bbt.is_block_bad(&pba) {
+                    lun.used.push(block);
+                    return Ok(pba);
+                }
             }
         }
-        return Err(1);
+        return Err(ProvisionError::NoFreeBlock);
     }
 
-    fn provison_page(&mut self) -> Result<PhysicalPageAddress, C_ERR> {
+    fn provison_page(&mut self) -> Result<PhysicalPageAddress, ProvisionError> {
         for _i in 0..MEDIA_MANAGER.n_luns {
             self.last_lun_picked = (self.last_lun_picked + 1) % MEDIA_MANAGER.n_luns;
-            let mut lun = self.luns[self.last_lun_picked];
+            let lun_id = self.last_lun_picked;
+            let mut lun = self.luns[lun_id];
             // 1. pick a lun
             // 2. get a free block from the lun if there is any
             // 3. move the block from free to used
             // 4. return the pba
 
             if let Some(mut block) = lun.partially_used.pop() {
+                // TODO: can the page be reserved?? if so, then it should be handled.
                 for (idx, page) in block.pages.iter_mut().enumerate() {
-                    if !page.dirty {
-                        page.dirty = true;
+                    if !page.in_use {
+                        page.in_use = true;
 
-                        // if it is the last clean page in the block, then move block to used
+                        // if it is the last page not in use in the block, then move block to used
                         if idx == block.pages.len() - 1 {
                             lun.used.push(Block {
                                 id: block.id,
                                 plane_id: block.plane_id,
                             });
+                        } else {
+                            lun.partially_used.push(block);
                         }
 
                         let ppa = PhysicalPageAddress {
                             channel: self.channel_id,
-                            lun: self.last_lun_picked,
+                            lun: lun_id,
                             plane: block.plane_id as u8,
                             block: block.id,
                             page: idx,
@@ -111,31 +129,46 @@ impl ChannelProvisioner {
                 }
             }
             // if there are no partially_used page blocks?
+            // NOTE: this gets a free block from the same lun, instead of checking for another partially_used block in another lun
+            // This might not be the best behaviour, depending on if it is better to check other lun partially_used
             else if let Some(block) = lun.free.pop() {
-                let block_with_page_info = BlockWithPageInfo {
-                    id: block.id,
-                    plane_id: block.plane_id,
-                    pages: [Page { dirty: false }; MEDIA_MANAGER.n_pages],
-                    n_pages: MEDIA_MANAGER.n_pages,
-                };
-                lun.partially_used.push(block_with_page_info);
-                let ppa = PhysicalPageAddress {
+                let pba = PhysicalBlockAddress {
                     channel: self.channel_id,
-                    lun: self.last_lun_picked,
+                    lun: lun_id,
                     plane: block.plane_id as u8,
                     block: block.id,
-                    page: 0,
                 };
-                return Ok(ppa);
+
+                if let Ok(IS_NOT_BAD_BLOCK) = self.bbt.is_block_bad(&pba) {
+                    let mut block_with_page_info = BlockWithPageInfo {
+                        id: block.id,
+                        plane_id: block.plane_id,
+                        pages: [Page { in_use: false }; MEDIA_MANAGER.n_pages],
+                        n_pages: MEDIA_MANAGER.n_pages,
+                    };
+                    block_with_page_info.pages[0] = Page { in_use: true };
+
+                    // lun.partial_page_count += block_with_page_info.pages.len() - 1;
+                    lun.partially_used.push(block_with_page_info);
+                    let ppa = PhysicalPageAddress {
+                        channel: self.channel_id,
+                        lun: self.last_lun_picked,
+                        plane: block.plane_id as u8,
+                        block: block.id,
+                        page: 0,
+                    };
+                    return Ok(ppa);
+                }
             }
         }
-        return Err(1);
+        return Err(ProvisionError::NoFreePage);
     }
 }
 
 // To provision a block we need:
 // - It's free
 // - It's not bad (not in bb table)
+// - It's not reserved
 
 // - Extra:
 // - We don't want to provison two blocks in the same lun, since we cannot parallelize I/Os then.

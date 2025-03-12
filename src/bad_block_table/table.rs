@@ -1,9 +1,10 @@
 use crate::media_manager::stub::{
-    C_ERR, MEDIA_MANAGER, MediaManager, PhysicalBlockAddress, PhysicalPageAddress,
+    MEDIA_MANAGER, MediaManager, MediaManagerError, PhysicalBlockAddress,
+    PhysicalBlockAddressError, PhysicalPageAddress,
 };
 
 #[derive(Copy, Clone)]
-struct ChannelBadBlockTable {
+pub struct ChannelBadBlockTable {
     n_bad_blocks: usize,
     channel: Channel,
     channel_id: usize,
@@ -31,15 +32,23 @@ struct Plane {
 
 // TODO: find a better name?
 type IsBadBlock = bool;
+pub const IS_NOT_BAD_BLOCK: bool = true;
 
-fn is_block_bad(pba: &PhysicalBlockAddress) -> IsBadBlock {
+pub enum BadBlockTableError {
+    FactoryInitTable,
+    RestoreTable,
+}
+
+fn factory_init_is_block_bad(
+    pba: &PhysicalBlockAddress,
+) -> Result<IsBadBlock, PhysicalBlockAddressError> {
     if pba.is_reserved() {
-        return false;
+        return Err(PhysicalBlockAddressError::Reserved);
     }
 
     match MediaManager::erase_block(pba) {
-        Ok(()) => false,
-        Err(_) => true,
+        Ok(()) => Ok(false),
+        Err(_) => Ok(true),
     }
 }
 
@@ -65,7 +74,7 @@ impl ChannelBadBlockTable {
         }
     }
 
-    fn factory_init(&mut self) -> Result<(), C_ERR> {
+    fn factory_init(&mut self) -> Result<(), BadBlockTableError> {
         for (lun_id, lun) in self.channel.luns.iter_mut().enumerate() {
             for (plane_id, plane) in lun.planes.iter_mut().enumerate() {
                 for (block_id, block) in plane.blocks.iter_mut().enumerate() {
@@ -76,15 +85,23 @@ impl ChannelBadBlockTable {
                         block: block_id,
                     };
 
-                    *block = is_block_bad(&pba);
+                    if let Ok(is_bad) = factory_init_is_block_bad(&pba) {
+                        *block = is_bad;
+                    } else {
+                        *block = false;
+                    }
                 }
             }
         }
 
-        return self.flush();
+        if let Err(_) = self.flush() {
+            return Err(BadBlockTableError::FactoryInitTable);
+        } else {
+            return Ok(());
+        }
     }
 
-    fn flush(&mut self) -> Result<(), C_ERR> {
+    fn flush(&mut self) -> Result<(), MediaManagerError> {
         self.current_page = (self.current_page + 1) % MEDIA_MANAGER.n_pages;
         self.version += 1;
 
@@ -99,10 +116,10 @@ impl ChannelBadBlockTable {
         return MediaManager::write_page(ppa);
     }
 
-    fn restore_state_from_boot(&mut self) -> Result<Self, C_ERR> {
+    fn restore_state_from_boot(&mut self) -> Result<Self, BadBlockTableError> {
         // assumption: the bb table can be contained in a single page
 
-        let latest_version = 0;
+        let mut latest_version = 0;
 
         for page in 0..MEDIA_MANAGER.n_pages {
             let ppa = &PhysicalPageAddress {
@@ -113,15 +130,30 @@ impl ChannelBadBlockTable {
                 page: page,
             };
 
-            let table_from_disk = MediaManager::read_page(ppa)? as ChannelBadBlockTable; //throws Err is unpack fails
-
-            if (latest_version < table_from_disk.version) {
-                latest_version = table_from_disk.version;
-            } else {
-                return Ok(table_from_disk);
+            if let Ok(table_from_disk) = MediaManager::read_page::<ChannelBadBlockTable>(ppa) {
+                //throws Err is unpack fails
+                if latest_version < table_from_disk.version {
+                    latest_version = table_from_disk.version;
+                } else {
+                    return Ok(table_from_disk);
+                }
             }
         }
 
-        Err(1)
+        return Err(BadBlockTableError::RestoreTable);
+    }
+
+    pub fn is_block_bad(
+        &self,
+        pba: &PhysicalBlockAddress,
+    ) -> Result<IsBadBlock, PhysicalBlockAddressError> {
+        if pba.is_reserved() {
+            return Err(PhysicalBlockAddressError::Reserved);
+        }
+
+        let lun = self.channel.luns[pba.lun];
+        let plane = lun.planes[pba.plane as usize];
+        let is_bad = plane.blocks[pba.block];
+        return Ok(is_bad);
     }
 }

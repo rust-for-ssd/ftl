@@ -25,6 +25,18 @@ pub struct MediaManager {
 
 pub type C_ERR = usize;
 
+pub enum PhysicalBlockAddressError {
+    Reserved,
+    InvalidAddress,
+    BadBlock,
+}
+
+pub enum MediaManagerError {
+    Write,
+    Read,
+    Erase,
+}
+
 const N_CHANNELS: usize = 24;
 const N_LUNS: usize = 32;
 const N_PLANES: usize = 2;
@@ -42,16 +54,16 @@ pub static MEDIA_MANAGER: MediaManager = MediaManager {
 };
 
 impl MediaManager {
-    pub fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), C_ERR> {
+    pub fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         todo!()
     }
 
-    pub fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, C_ERR> {
+    pub fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
         // TODO: should have a proper return type instead of Ok(())
         todo!()
     }
 
-    pub fn write_page(ppa: &PhysicalPageAddress) -> Result<(), C_ERR> {
+    pub fn write_page(ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
         todo!()
     }
 }
