@@ -3,7 +3,7 @@ use crate::media_manager::stub::{
 };
 
 #[derive(Copy, Clone)]
-struct BadBlockChannelTable {
+struct ChannelBadBlockTable {
     n_bad_blocks: usize,
     channel: Channel,
     channel_id: usize,
@@ -43,7 +43,7 @@ fn is_block_bad(pba: &PhysicalBlockAddress) -> IsBadBlock {
     }
 }
 
-impl BadBlockChannelTable {
+impl ChannelBadBlockTable {
     fn new(channel_id: usize, n_luns: usize, n_planes: usize, n_blocks: usize) -> Self {
         let channel = Channel {
             luns: [LUN {
@@ -56,7 +56,7 @@ impl BadBlockChannelTable {
             n_luns,
         };
 
-        BadBlockChannelTable {
+        ChannelBadBlockTable {
             n_bad_blocks: 0,
             channel,
             channel_id,
@@ -114,7 +114,7 @@ impl BadBlockChannelTable {
                 page: page,
             };
 
-            let table_from_disk = MediaManger::read_page(ppa)? as BadBlockChannelTable; //throws Err is unpack fails
+            let table_from_disk = MediaManger::read_page(ppa)? as ChannelBadBlockTable; //throws Err is unpack fails
 
             if (latest_version < table_from_disk.version) {
                 latest_version = table_from_disk.version;

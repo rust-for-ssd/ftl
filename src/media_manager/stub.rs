@@ -15,6 +15,7 @@ pub struct PhysicalBlockAddress {
 
 // NOTE: MediaManager should contain Safe C-wrappers around whatever MM strub we get from Ivan
 pub struct MediaManger {
+    pub n_channels: usize,
     pub n_luns: usize,
     pub n_planes: usize,
     pub n_blocks: usize,
@@ -25,6 +26,7 @@ pub struct MediaManger {
 pub type C_ERR = usize;
 
 pub static MEDIA_MANAGER: MediaManger = MediaManger {
+    n_channels: 24,
     n_luns: 32,
     n_planes: 2,
     n_blocks: 64,
