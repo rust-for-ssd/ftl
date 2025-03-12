@@ -1,7 +1,7 @@
 // Page provison: gives a physical page adress (ppa) to an available page
 
 use crate::{
-    bad_block_table::table::IS_NOT_BAD_BLOCK,
+    bad_block_table::table::BadBlockEntry,
     media_manager::stub::{
         MEDIA_MANAGER, N_BLOCKS_PER_LUN, PhysicalBlockAddress, PhysicalPageAddress,
     },
@@ -82,7 +82,7 @@ impl ChannelProvisioner {
                     block: block.id,
                 };
 
-                if let Ok(IS_NOT_BAD_BLOCK) = self.bbt.is_block_bad(&pba) {
+                if let BadBlockEntry::Good = self.bbt.get_block_type(&pba) {
                     lun.used.push(block);
                     return Ok(pba);
                 }
@@ -139,7 +139,7 @@ impl ChannelProvisioner {
                     block: block.id,
                 };
 
-                if let Ok(IS_NOT_BAD_BLOCK) = self.bbt.is_block_bad(&pba) {
+                if let BadBlockEntry::Good = self.bbt.get_block_type(&pba) {
                     let mut block_with_page_info = BlockWithPageInfo {
                         id: block.id,
                         plane_id: block.plane_id,

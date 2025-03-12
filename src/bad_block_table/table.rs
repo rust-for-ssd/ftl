@@ -26,29 +26,30 @@ struct LUN {
 
 #[derive(Copy, Clone)]
 struct Plane {
-    blocks: [IsBadBlock; MEDIA_MANAGER.n_blocks_per_plane],
+    blocks: [BadBlockEntry; MEDIA_MANAGER.n_blocks_per_plane],
     n_blocks: usize,
 }
 
-// TODO: find a better name?
-type IsBadBlock = bool;
-pub const IS_NOT_BAD_BLOCK: bool = true;
+#[derive(Copy, Clone)]
+pub enum BadBlockEntry {
+    Good,
+    Bad,
+    Reserved,
+}
 
 pub enum BadBlockTableError {
     FactoryInitTable,
     RestoreTable,
 }
 
-fn factory_init_is_block_bad(
-    pba: &PhysicalBlockAddress,
-) -> Result<IsBadBlock, PhysicalBlockAddressError> {
+fn factory_init_get_entry_type(pba: &PhysicalBlockAddress) -> BadBlockEntry {
     if pba.is_reserved() {
-        return Err(PhysicalBlockAddressError::Reserved);
+        return BadBlockEntry::Reserved;
     }
 
     match MediaManager::erase_block(pba) {
-        Ok(()) => Ok(false),
-        Err(_) => Ok(true),
+        Ok(()) => BadBlockEntry::Good,
+        Err(_) => BadBlockEntry::Bad,
     }
 }
 
@@ -59,7 +60,7 @@ impl ChannelBadBlockTable {
                 n_planes,
                 planes: [Plane {
                     n_blocks,
-                    blocks: [false; MEDIA_MANAGER.n_blocks_per_plane],
+                    blocks: [BadBlockEntry::Good; MEDIA_MANAGER.n_blocks_per_plane],
                 }; MEDIA_MANAGER.n_planes],
             }; MEDIA_MANAGER.n_luns],
             n_luns,
@@ -85,11 +86,7 @@ impl ChannelBadBlockTable {
                         block: block_id,
                     };
 
-                    if let Ok(is_bad) = factory_init_is_block_bad(&pba) {
-                        *block = is_bad;
-                    } else {
-                        *block = false;
-                    }
+                    *block = factory_init_get_entry_type(&pba);
                 }
             }
         }
@@ -131,7 +128,6 @@ impl ChannelBadBlockTable {
             };
 
             if let Ok(table_from_disk) = MediaManager::read_page::<ChannelBadBlockTable>(ppa) {
-                //throws Err is unpack fails
                 if latest_version < table_from_disk.version {
                     latest_version = table_from_disk.version;
                 } else {
@@ -143,17 +139,13 @@ impl ChannelBadBlockTable {
         return Err(BadBlockTableError::RestoreTable);
     }
 
-    pub fn is_block_bad(
-        &self,
-        pba: &PhysicalBlockAddress,
-    ) -> Result<IsBadBlock, PhysicalBlockAddressError> {
+    pub fn get_block_type(&self, pba: &PhysicalBlockAddress) -> BadBlockEntry {
         if pba.is_reserved() {
-            return Err(PhysicalBlockAddressError::Reserved);
+            return BadBlockEntry::Reserved;
         }
 
         let lun = self.channel.luns[pba.lun];
         let plane = lun.planes[pba.plane as usize];
-        let is_bad = plane.blocks[pba.block];
-        return Ok(is_bad);
+        return plane.blocks[pba.block];
     }
 }
