@@ -14,27 +14,34 @@ pub struct PhysicalBlockAddress {
 }
 
 // NOTE: MediaManager should contain Safe C-wrappers around whatever MM strub we get from Ivan
-pub struct MediaManger {
+pub struct MediaManager {
     pub n_channels: usize,
     pub n_luns: usize,
     pub n_planes: usize,
-    pub n_blocks: usize,
+    pub n_blocks_per_plane: usize,
     pub n_pages: usize,
-    pub bytes_per_page: usize,
+    pub n_blocks_per_lun: usize,
 }
 
 pub type C_ERR = usize;
 
-pub static MEDIA_MANAGER: MediaManger = MediaManger {
-    n_channels: 24,
-    n_luns: 32,
-    n_planes: 2,
-    n_blocks: 64,
-    n_pages: 8,
-    bytes_per_page: 128,
+const N_CHANNELS: usize = 24;
+const N_LUNS: usize = 32;
+const N_PLANES: usize = 2;
+const N_BLOCKS_PER_PLANE: usize = 64;
+const N_PAGES: usize = 8;
+pub const N_BLOCKS_PER_LUN: usize = N_PLANES * N_BLOCKS_PER_PLANE;
+
+pub static MEDIA_MANAGER: MediaManager = MediaManager {
+    n_channels: N_CHANNELS,
+    n_luns: N_LUNS,
+    n_planes: N_PLANES,
+    n_blocks_per_plane: N_BLOCKS_PER_PLANE,
+    n_pages: N_PAGES,
+    n_blocks_per_lun: N_PLANES * N_BLOCKS_PER_PLANE,
 };
 
-impl MediaManger {
+impl MediaManager {
     pub fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), C_ERR> {
         todo!()
     }

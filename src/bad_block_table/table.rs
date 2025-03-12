@@ -1,5 +1,5 @@
 use crate::media_manager::stub::{
-    C_ERR, MEDIA_MANAGER, MediaManger, PhysicalBlockAddress, PhysicalPageAddress,
+    C_ERR, MEDIA_MANAGER, MediaManager, PhysicalBlockAddress, PhysicalPageAddress,
 };
 
 #[derive(Copy, Clone)]
@@ -8,7 +8,7 @@ struct ChannelBadBlockTable {
     channel: Channel,
     channel_id: usize,
     current_page: usize,
-    version: usize
+    version: usize,
 }
 
 #[derive(Copy, Clone)]
@@ -25,7 +25,7 @@ struct LUN {
 
 #[derive(Copy, Clone)]
 struct Plane {
-    blocks: [IsBadBlock; MEDIA_MANAGER.n_blocks],
+    blocks: [IsBadBlock; MEDIA_MANAGER.n_blocks_per_plane],
     n_blocks: usize,
 }
 
@@ -37,7 +37,7 @@ fn is_block_bad(pba: &PhysicalBlockAddress) -> IsBadBlock {
         return false;
     }
 
-    match MediaManger::erase_block(pba) {
+    match MediaManager::erase_block(pba) {
         Ok(()) => false,
         Err(_) => true,
     }
@@ -50,7 +50,7 @@ impl ChannelBadBlockTable {
                 n_planes,
                 planes: [Plane {
                     n_blocks,
-                    blocks: [false; MEDIA_MANAGER.n_blocks],
+                    blocks: [false; MEDIA_MANAGER.n_blocks_per_plane],
                 }; MEDIA_MANAGER.n_planes],
             }; MEDIA_MANAGER.n_luns],
             n_luns,
@@ -96,16 +96,15 @@ impl ChannelBadBlockTable {
             page: self.current_page,
         };
 
-        return MediaManger::write_page(ppa);
+        return MediaManager::write_page(ppa);
     }
 
     fn restore_state_from_boot(&mut self) -> Result<Self, C_ERR> {
         // assumption: the bb table can be contained in a single page
 
-        let latest_version = 0; 
+        let latest_version = 0;
 
         for page in 0..MEDIA_MANAGER.n_pages {
-
             let ppa = &PhysicalPageAddress {
                 channel: self.channel_id,
                 lun: 0,
@@ -114,18 +113,15 @@ impl ChannelBadBlockTable {
                 page: page,
             };
 
-            let table_from_disk = MediaManger::read_page(ppa)? as ChannelBadBlockTable; //throws Err is unpack fails
+            let table_from_disk = MediaManager::read_page(ppa)? as ChannelBadBlockTable; //throws Err is unpack fails
 
             if (latest_version < table_from_disk.version) {
                 latest_version = table_from_disk.version;
-            } else { 
+            } else {
                 return Ok(table_from_disk);
             }
         }
 
         Err(1)
-        
     }
 }
-
-
