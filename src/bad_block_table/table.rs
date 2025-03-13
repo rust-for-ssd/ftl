@@ -24,11 +24,11 @@ struct LUN {
 
 #[derive(Copy, Clone)]
 struct Plane {
-    blocks: [BadBlockEntry; config::BLOCKS_PER_PLANE],
+    blocks: [BlockStatus; config::BLOCKS_PER_PLANE],
 }
 
 #[derive(Copy, Clone)]
-pub enum BadBlockEntry {
+pub enum BlockStatus {
     Good,
     Bad,
     Reserved,
@@ -39,14 +39,14 @@ pub enum BadBlockTableError {
     RestoreTable,
 }
 
-fn factory_init_get_entry_type(pba: &PhysicalBlockAddress) -> BadBlockEntry {
+fn factory_init_get_block_status(pba: &PhysicalBlockAddress) -> BlockStatus {
     if pba.is_reserved() {
-        return BadBlockEntry::Reserved;
+        return BlockStatus::Reserved;
     }
 
     match MediaManager::erase_block(pba) {
-        Ok(()) => BadBlockEntry::Good,
-        Err(_) => BadBlockEntry::Bad,
+        Ok(()) => BlockStatus::Good,
+        Err(_) => BlockStatus::Bad,
     }
 }
 
@@ -55,7 +55,7 @@ impl ChannelBadBlockTable {
         let channel = Channel {
             luns: [LUN {
                 planes: [Plane {
-                    blocks: [BadBlockEntry::Good; config::BLOCKS_PER_PLANE],
+                    blocks: [BlockStatus::Good; config::BLOCKS_PER_PLANE],
                 }; config::PLANES_PER_LUN],
             }; config::LUNS_PER_CHANNEL],
         };
@@ -80,7 +80,7 @@ impl ChannelBadBlockTable {
                         block: block_id,
                     };
 
-                    *block = factory_init_get_entry_type(&pba);
+                    *block = factory_init_get_block_status(&pba);
                 }
             }
         }
@@ -133,9 +133,9 @@ impl ChannelBadBlockTable {
         return Err(BadBlockTableError::RestoreTable);
     }
 
-    pub fn get_block_type(&self, pba: &PhysicalBlockAddress) -> BadBlockEntry {
+    pub fn get_block_status(&self, pba: &PhysicalBlockAddress) -> BlockStatus {
         if pba.is_reserved() {
-            return BadBlockEntry::Reserved;
+            return BlockStatus::Reserved;
         }
 
         let lun = self.channel.luns[pba.lun];

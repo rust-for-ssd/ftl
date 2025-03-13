@@ -2,7 +2,7 @@ use core::array::from_fn;
 use crate::bad_block_table::table::ChannelBadBlockTable;
 use crate::config;
 use crate::{
-    bad_block_table::table::BadBlockEntry,
+    bad_block_table::table::BlockStatus,
     media_manager::stub::{ PhysicalBlockAddress, PhysicalPageAddress },
     utils::ring_buffer::RingBuffer,
 };
@@ -110,7 +110,7 @@ impl ChannelProvisioner {
                     block: block.id,
                 };
 
-                if let BadBlockEntry::Good = self.bbt.get_block_type(&pba) {
+                if let BlockStatus::Good = self.bbt.get_block_status(&pba) {
                     lun.used.push(block);
                     return Ok(pba);
                 }
@@ -167,7 +167,7 @@ impl ChannelProvisioner {
                     block: block.id,
                 };
 
-                if let BadBlockEntry::Good = self.bbt.get_block_type(&pba) {
+                if let BlockStatus::Good = self.bbt.get_block_status(&pba) {
                     let mut block_with_page_info = BlockWithPageInfo {
                         id: block.id,
                         plane_id: block.plane_id,
