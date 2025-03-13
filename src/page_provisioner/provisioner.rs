@@ -1,10 +1,9 @@
 use core::array::from_fn;
 use crate::bad_block_table::table::ChannelBadBlockTable;
+use crate::config;
 use crate::{
     bad_block_table::table::BadBlockEntry,
-    media_manager::stub::{
-        MEDIA_MANAGER, N_BLOCKS_PER_LUN, PhysicalBlockAddress, PhysicalPageAddress,
-    },
+    media_manager::stub::{ PhysicalBlockAddress, PhysicalPageAddress },
     utils::ring_buffer::RingBuffer,
 };
 
@@ -17,14 +16,13 @@ use crate::{
 // - Extra:
 // - We don't want to provison two blocks in the same lun, since we cannot parallelize I/Os then.
 // - Maybe round-robin fashion
-
 pub struct GlobalProvisoner {
-    channel_provisioners: [ChannelProvisioner; MEDIA_MANAGER.n_channels],
+    channel_provisioners: [ChannelProvisioner; config::N_CHANNELS],
     last_channel_provisioned: usize,
 }
 
 impl GlobalProvisoner {
-    pub fn new(bbts: [ChannelBadBlockTable; MEDIA_MANAGER.n_channels]) -> Self {
+    pub fn new(bbts: [ChannelBadBlockTable; config::N_CHANNELS]) -> Self {
         GlobalProvisoner{
             channel_provisioners: from_fn(|id|ChannelProvisioner::new(id, bbts[id])),
             last_channel_provisioned: 0,
@@ -45,7 +43,7 @@ impl GlobalProvisoner {
 }
 
 struct ChannelProvisioner {
-    luns: [LUN; MEDIA_MANAGER.n_luns],
+    luns: [LUN; config::LUNS_PER_CHANNEL],
     last_lun_picked: usize,
     channel_id: usize,
     bbt: ChannelBadBlockTable,
@@ -53,9 +51,9 @@ struct ChannelProvisioner {
 
 #[derive(Copy, Clone)]
 struct LUN {
-    free: RingBuffer<Block, N_BLOCKS_PER_LUN>,
-    used: RingBuffer<Block, N_BLOCKS_PER_LUN>,
-    partially_used: RingBuffer<BlockWithPageInfo, N_BLOCKS_PER_LUN>,
+    free: RingBuffer<Block, { config::BLOCKS_PER_LUN }>,
+    used: RingBuffer<Block, { config::BLOCKS_PER_LUN }>,
+    partially_used: RingBuffer<BlockWithPageInfo, { config::BLOCKS_PER_LUN }>,
 }
 
 #[derive(Copy, Clone)]
@@ -68,8 +66,7 @@ struct Block {
 struct BlockWithPageInfo {
     id: usize,
     plane_id: usize,
-    pages: [Page; MEDIA_MANAGER.n_pages],
-    n_pages: usize,
+    pages: [Page; config::PAGES_PER_BLOCK],
 }
 
 #[derive(Copy, Clone)]
@@ -89,7 +86,7 @@ impl ChannelProvisioner {
                 free: RingBuffer::new(),
                 used: RingBuffer::new(),
                 partially_used: RingBuffer::new(),
-            }; MEDIA_MANAGER.n_luns],
+            }; config::LUNS_PER_CHANNEL],
             last_lun_picked: 0,
             channel_id,
             bbt
@@ -97,8 +94,8 @@ impl ChannelProvisioner {
     }
 
     pub fn provision_block(&mut self) -> Result<PhysicalBlockAddress, ProvisionError> {
-        for _i in 0..MEDIA_MANAGER.n_luns {
-            self.last_lun_picked = (self.last_lun_picked + 1) % MEDIA_MANAGER.n_luns;
+        for _i in 0..self.luns.len() {
+            self.last_lun_picked = (self.last_lun_picked + 1) % self.luns.len();
             let mut lun = self.luns[self.last_lun_picked];
             // 1. pick a lun
             // 2. get a free block from the lun if there is any
@@ -123,8 +120,8 @@ impl ChannelProvisioner {
     }
 
     pub fn provison_page(&mut self) -> Result<PhysicalPageAddress, ProvisionError> {
-        for _i in 0..MEDIA_MANAGER.n_luns {
-            self.last_lun_picked = (self.last_lun_picked + 1) % MEDIA_MANAGER.n_luns;
+        for _i in 0..self.luns.len() {
+            self.last_lun_picked = (self.last_lun_picked + 1) % self.luns.len();
             let lun_id = self.last_lun_picked;
             let mut lun = self.luns[lun_id];
             // 1. pick a lun
@@ -174,8 +171,7 @@ impl ChannelProvisioner {
                     let mut block_with_page_info = BlockWithPageInfo {
                         id: block.id,
                         plane_id: block.plane_id,
-                        pages: [Page { in_use: false }; MEDIA_MANAGER.n_pages],
-                        n_pages: MEDIA_MANAGER.n_pages,
+                        pages: [Page { in_use: false }; config::PAGES_PER_BLOCK],
                     };
                     block_with_page_info.pages[0] = Page { in_use: true };
 

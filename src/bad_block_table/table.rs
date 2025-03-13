@@ -1,7 +1,7 @@
-use crate::media_manager::stub::{
-    MEDIA_MANAGER, MediaManager, MediaManagerError, PhysicalBlockAddress,
+use crate::{config, media_manager::stub::{
+    MediaManager, MediaManagerError, PhysicalBlockAddress,
     PhysicalBlockAddressError, PhysicalPageAddress,
-};
+}};
 
 #[derive(Copy, Clone)]
 pub struct ChannelBadBlockTable {
@@ -14,17 +14,17 @@ pub struct ChannelBadBlockTable {
 
 #[derive(Copy, Clone)]
 struct Channel {
-    luns: [LUN; MEDIA_MANAGER.n_luns],
+    luns: [LUN; config::LUNS_PER_CHANNEL],
 }
 
 #[derive(Copy, Clone)]
 struct LUN {
-    planes: [Plane; MEDIA_MANAGER.n_planes],
+    planes: [Plane; config::PLANES_PER_LUN],
 }
 
 #[derive(Copy, Clone)]
 struct Plane {
-    blocks: [BadBlockEntry; MEDIA_MANAGER.n_blocks_per_plane],
+    blocks: [BadBlockEntry; config::BLOCKS_PER_PLANE],
 }
 
 #[derive(Copy, Clone)]
@@ -55,9 +55,9 @@ impl ChannelBadBlockTable {
         let channel = Channel {
             luns: [LUN {
                 planes: [Plane {
-                    blocks: [BadBlockEntry::Good; MEDIA_MANAGER.n_blocks_per_plane],
-                }; MEDIA_MANAGER.n_planes],
-            }; MEDIA_MANAGER.n_luns],
+                    blocks: [BadBlockEntry::Good; config::BLOCKS_PER_PLANE],
+                }; config::PLANES_PER_LUN],
+            }; config::LUNS_PER_CHANNEL],
         };
 
         ChannelBadBlockTable {
@@ -93,7 +93,7 @@ impl ChannelBadBlockTable {
     }
 
     fn flush(&mut self) -> Result<(), MediaManagerError> {
-        self.current_page = (self.current_page + 1) % MEDIA_MANAGER.n_pages;
+        self.current_page = (self.current_page + 1) % config::PAGES_PER_BLOCK;
         self.version += 1;
 
         let ppa = &PhysicalPageAddress {
@@ -112,7 +112,7 @@ impl ChannelBadBlockTable {
 
         let mut latest_version = 0;
 
-        for page in 0..MEDIA_MANAGER.n_pages {
+        for page in 0..config::PAGES_PER_BLOCK {
             let ppa = &PhysicalPageAddress {
                 channel: channel_id,
                 lun: 0,
