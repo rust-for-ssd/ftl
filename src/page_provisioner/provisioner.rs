@@ -104,7 +104,7 @@ impl ChannelProvisioner {
                 let pba = PhysicalBlockAddress {
                     channel: self.channel_id,
                     lun: self.last_lun_picked,
-                    plane: block.plane_id as u8,
+                    plane: block.plane_id,
                     block: block.id,
                 };
 
@@ -146,7 +146,7 @@ impl ChannelProvisioner {
                         let ppa = PhysicalPageAddress {
                             channel: self.channel_id,
                             lun: lun_id,
-                            plane: block.plane_id as u8,
+                            plane: block.plane_id,
                             block: block.id,
                             page: idx,
                         };
@@ -161,7 +161,7 @@ impl ChannelProvisioner {
                 let pba = PhysicalBlockAddress {
                     channel: self.channel_id,
                     lun: lun_id,
-                    plane: block.plane_id as u8,
+                    plane: block.plane_id,
                     block: block.id,
                 };
 
@@ -179,7 +179,7 @@ impl ChannelProvisioner {
                     let ppa = PhysicalPageAddress {
                         channel: self.channel_id,
                         lun: self.last_lun_picked,
-                        plane: block.plane_id as u8,
+                        plane: block.plane_id,
                         block: block.id,
                         page: 0,
                     };

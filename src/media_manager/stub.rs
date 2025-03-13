@@ -1,7 +1,7 @@
 pub struct PhysicalPageAddress {
     pub channel: usize,
     pub lun: usize,
-    pub plane: u8,
+    pub plane: usize,
     pub block: usize,
     pub page: usize,
 }
@@ -9,7 +9,7 @@ pub struct PhysicalPageAddress {
 pub struct PhysicalBlockAddress {
     pub channel: usize,
     pub lun: usize,
-    pub plane: u8,
+    pub plane: usize,
     pub block: usize,
 }
 

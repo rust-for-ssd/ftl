@@ -76,7 +76,7 @@ impl ChannelBadBlockTable {
                     let pba: PhysicalBlockAddress = PhysicalBlockAddress {
                         channel: self.channel_id,
                         lun: lun_id,
-                        plane: plane_id as u8,
+                        plane: plane_id,
                         block: block_id,
                     };
 
