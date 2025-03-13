@@ -1,8 +1,5 @@
-// Page provison: gives a physical page adress (ppa) to an available page
 use core::array::from_fn;
 use crate::bad_block_table::table::ChannelBadBlockTable;
-
-
 use crate::{
     bad_block_table::table::BadBlockEntry,
     media_manager::stub::{
@@ -10,6 +7,16 @@ use crate::{
     },
     utils::ring_buffer::RingBuffer,
 };
+
+// Page provison: gives a physical page adress (ppa) to an available page
+// - To provision a block we need:
+// - It's free
+// - It's not bad (not in bb table)
+// - It's not reserved
+
+// - Extra:
+// - We don't want to provison two blocks in the same lun, since we cannot parallelize I/Os then.
+// - Maybe round-robin fashion
 
 pub struct GlobalProvisoner {
     channel_provisioners: [ChannelProvisioner; MEDIA_MANAGER.n_channels],
@@ -46,11 +53,9 @@ struct ChannelProvisioner {
 
 #[derive(Copy, Clone)]
 struct LUN {
-    // TODO: we make these way too big for starters
     free: RingBuffer<Block, N_BLOCKS_PER_LUN>,
     used: RingBuffer<Block, N_BLOCKS_PER_LUN>,
     partially_used: RingBuffer<BlockWithPageInfo, N_BLOCKS_PER_LUN>,
-    // partial_page_count: usize,
 }
 
 #[derive(Copy, Clone)]
@@ -174,7 +179,6 @@ impl ChannelProvisioner {
                     };
                     block_with_page_info.pages[0] = Page { in_use: true };
 
-                    // lun.partial_page_count += block_with_page_info.pages.len() - 1;
                     lun.partially_used.push(block_with_page_info);
                     let ppa = PhysicalPageAddress {
                         channel: self.channel_id,
@@ -191,11 +195,4 @@ impl ChannelProvisioner {
     }
 }
 
-// To provision a block we need:
-// - It's free
-// - It's not bad (not in bb table)
-// - It's not reserved
 
-// - Extra:
-// - We don't want to provison two blocks in the same lun, since we cannot parallelize I/Os then.
-// - Maybe round-robin fashino
