@@ -54,7 +54,7 @@ fn factory_init_get_entry_type(pba: &PhysicalBlockAddress) -> BadBlockEntry {
 }
 
 impl ChannelBadBlockTable {
-    fn new(channel_id: usize, n_luns: usize, n_planes: usize, n_blocks: usize) -> Self {
+    pub fn new(channel_id: usize, n_luns: usize, n_planes: usize, n_blocks: usize) -> Self {
         let channel = Channel {
             luns: [LUN {
                 n_planes,

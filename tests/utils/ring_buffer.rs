@@ -1,7 +1,7 @@
 use ftl::utils::ring_buffer::RingBuffer;
 
 #[test_case]
-pub fn new_rb() {
+pub fn initializes_new_ring_buffer() {
     let mut rb = RingBuffer::<i32, 8>::new();
     assert_eq!(rb.get_size(), 0);
     assert_eq!(rb.pop(), None);
