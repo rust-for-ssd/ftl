@@ -15,19 +15,16 @@ pub struct ChannelBadBlockTable {
 #[derive(Copy, Clone)]
 struct Channel {
     luns: [LUN; MEDIA_MANAGER.n_luns],
-    n_luns: usize,
 }
 
 #[derive(Copy, Clone)]
 struct LUN {
     planes: [Plane; MEDIA_MANAGER.n_planes],
-    n_planes: usize,
 }
 
 #[derive(Copy, Clone)]
 struct Plane {
     blocks: [BadBlockEntry; MEDIA_MANAGER.n_blocks_per_plane],
-    n_blocks: usize,
 }
 
 #[derive(Copy, Clone)]
@@ -54,16 +51,13 @@ fn factory_init_get_entry_type(pba: &PhysicalBlockAddress) -> BadBlockEntry {
 }
 
 impl ChannelBadBlockTable {
-    pub fn new(channel_id: usize, n_luns: usize, n_planes: usize, n_blocks: usize) -> Self {
+    pub fn new(channel_id: usize) -> Self {
         let channel = Channel {
             luns: [LUN {
-                n_planes,
                 planes: [Plane {
-                    n_blocks,
                     blocks: [BadBlockEntry::Good; MEDIA_MANAGER.n_blocks_per_plane],
                 }; MEDIA_MANAGER.n_planes],
             }; MEDIA_MANAGER.n_luns],
-            n_luns,
         };
 
         ChannelBadBlockTable {
@@ -113,14 +107,14 @@ impl ChannelBadBlockTable {
         return MediaManager::write_page(ppa);
     }
 
-    fn restore_state_from_boot(&mut self) -> Result<Self, BadBlockTableError> {
+    fn restore_state_from_boot(channel_id: usize) -> Result<Self, BadBlockTableError> {
         // assumption: the bb table can be contained in a single page
 
         let mut latest_version = 0;
 
         for page in 0..MEDIA_MANAGER.n_pages {
             let ppa = &PhysicalPageAddress {
-                channel: self.channel_id,
+                channel: channel_id,
                 lun: 0,
                 plane: 0,
                 block: 0,
