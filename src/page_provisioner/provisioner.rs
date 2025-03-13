@@ -1,11 +1,11 @@
-use core::array::from_fn;
 use crate::bad_block_table::table::ChannelBadBlockTable;
 use crate::config;
 use crate::{
     bad_block_table::table::BlockStatus,
-    media_manager::stub::{ PhysicalBlockAddress, PhysicalPageAddress },
+    media_manager::stub::{PhysicalBlockAddress, PhysicalPageAddress},
     utils::ring_buffer::RingBuffer,
 };
+use core::array::from_fn;
 
 // Page provison: gives a physical page adress (ppa) to an available page
 // - To provision a block we need:
@@ -23,21 +23,25 @@ pub struct GlobalProvisoner {
 
 impl GlobalProvisoner {
     pub fn new(bbts: [ChannelBadBlockTable; config::N_CHANNELS]) -> Self {
-        GlobalProvisoner{
-            channel_provisioners: from_fn(|id|ChannelProvisioner::new(id, bbts[id])),
+        GlobalProvisoner {
+            channel_provisioners: from_fn(|id| ChannelProvisioner::new(id, bbts[id])),
             last_channel_provisioned: 0,
         }
     }
 
     pub fn provision_block(&mut self) -> Result<PhysicalBlockAddress, ProvisionError> {
         // Round robin choose a channel
-        self.last_channel_provisioned = (self.last_channel_provisioned + 1) % self.channel_provisioners.len();
-        let channel_provisoner: &mut ChannelProvisioner = &mut self.channel_provisioners[self.last_channel_provisioned];
+        self.last_channel_provisioned =
+            (self.last_channel_provisioned + 1) % self.channel_provisioners.len();
+        let channel_provisoner: &mut ChannelProvisioner =
+            &mut self.channel_provisioners[self.last_channel_provisioned];
         channel_provisoner.provision_block()
     }
     pub fn provison_page(&mut self) -> Result<PhysicalPageAddress, ProvisionError> {
-        self.last_channel_provisioned = (self.last_channel_provisioned + 1) % self.channel_provisioners.len();
-        let channel_provisoner: &mut ChannelProvisioner = &mut self.channel_provisioners[self.last_channel_provisioned];
+        self.last_channel_provisioned =
+            (self.last_channel_provisioned + 1) % self.channel_provisioners.len();
+        let channel_provisoner: &mut ChannelProvisioner =
+            &mut self.channel_provisioners[self.last_channel_provisioned];
         channel_provisoner.provison_page()
     }
 }
@@ -81,15 +85,15 @@ pub enum ProvisionError {
 
 impl ChannelProvisioner {
     pub fn new(channel_id: usize, bbt: ChannelBadBlockTable) -> Self {
-        ChannelProvisioner{
-            luns: [LUN{
+        ChannelProvisioner {
+            luns: [LUN {
                 free: RingBuffer::new(),
                 used: RingBuffer::new(),
                 partially_used: RingBuffer::new(),
             }; config::LUNS_PER_CHANNEL],
             last_lun_picked: 0,
             channel_id,
-            bbt
+            bbt,
         }
     }
 
@@ -190,5 +194,3 @@ impl ChannelProvisioner {
         return Err(ProvisionError::NoFreePage);
     }
 }
-
-

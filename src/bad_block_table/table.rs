@@ -1,7 +1,10 @@
-use crate::{config, media_manager::stub::{
-    MediaManager, MediaManagerError, PhysicalBlockAddress,
-    PhysicalBlockAddressError, PhysicalPageAddress,
-}};
+use crate::{
+    config,
+    media_manager::stub::{
+        MediaManager, MediaManagerError, PhysicalBlockAddress, PhysicalBlockAddressError,
+        PhysicalPageAddress,
+    },
+};
 
 #[derive(Copy, Clone)]
 pub struct ChannelBadBlockTable {
@@ -107,9 +110,8 @@ impl ChannelBadBlockTable {
         return MediaManager::write_page(ppa);
     }
 
+    // assumption: the bb table can be contained in a single page
     fn restore_state_from_boot(channel_id: usize) -> Result<Self, BadBlockTableError> {
-        // assumption: the bb table can be contained in a single page
-
         let mut latest_version = 0;
 
         for page in 0..config::PAGES_PER_BLOCK {
