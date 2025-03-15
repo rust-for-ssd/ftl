@@ -33,11 +33,11 @@ impl<T: Copy, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
     }
 
     pub fn pop(&mut self) -> Option<T> {
-        if self.size <= 0 {
+        if self.size == 0 {
             return None;
         }
 
-        // SAFETY: The size is positive, so the element is initialized.
+        // SAFETY: The size is non-zero usize, so the element is initialized.
         let res = unsafe { self.buffer[self.tail].assume_init() };
         self.tail = (self.tail + 1) % CAPACITY;
         self.size -= 1;
