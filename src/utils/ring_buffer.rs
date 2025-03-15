@@ -23,7 +23,7 @@ impl<T: Copy, const CAPACITY: usize> RingBuffer<T, CAPACITY> {
     }
 
     pub fn push(&mut self, value: T) -> Result<(), RingBufferError> {
-        if self.size == CAPACITY {
+        if self.size >= CAPACITY {
             return Err(RingBufferError::PushAtMaxCapacity);
         }
         self.buffer[self.head] = MaybeUninit::new(value);
