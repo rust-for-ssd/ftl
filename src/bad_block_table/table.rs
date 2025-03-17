@@ -3,6 +3,19 @@ use crate::{
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     media_manager::stub::{MediaManager, MediaManagerError},
 };
+use core::array::from_fn;
+
+pub struct GlobalBadBlockTable {
+    pub channel_bad_block_tables: [ChannelBadBlockTable; config::N_CHANNELS],
+}
+
+impl GlobalBadBlockTable {
+    pub fn new() -> Self {
+        GlobalBadBlockTable {
+            channel_bad_block_tables: from_fn(|id| ChannelBadBlockTable::new(id)),
+        }
+    }
+}
 
 #[derive(Copy, Clone)]
 pub struct ChannelBadBlockTable {

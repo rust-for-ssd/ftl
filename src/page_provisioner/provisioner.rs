@@ -1,4 +1,4 @@
-use crate::bad_block_table::table::ChannelBadBlockTable;
+use crate::bad_block_table::table::{ChannelBadBlockTable, GlobalBadBlockTable};
 use crate::config;
 use crate::{
     bad_block_table::table::BlockStatus,
@@ -16,15 +16,15 @@ use core::array::from_fn;
 // - Extra:
 // - We don't want to provison two blocks in the same lun, since we cannot parallelize I/Os then.
 // - Maybe round-robin fashion
-pub struct GlobalProvisoner {
-    channel_provisioners: [ChannelProvisioner; config::N_CHANNELS],
+pub struct GlobalProvisoner<'bbt> {
+    channel_provisioners: [ChannelProvisioner<'bbt>; config::N_CHANNELS],
     last_channel_provisioned: usize,
 }
 
-impl GlobalProvisoner {
-    pub fn new(bbts: [ChannelBadBlockTable; config::N_CHANNELS]) -> Self {
+impl <'bbt> GlobalProvisoner  {
+    pub fn new(bbt: &GlobalBadBlockTable) -> Self {
         GlobalProvisoner {
-            channel_provisioners: from_fn(|id| ChannelProvisioner::new(id, bbts[id])),
+            channel_provisioners: from_fn(|id| ChannelProvisioner::new(id, &bbt.channel_bad_block_tables[id])),
             last_channel_provisioned: 0,
         }
     }
@@ -46,11 +46,11 @@ impl GlobalProvisoner {
     }
 }
 
-struct ChannelProvisioner {
+struct ChannelProvisioner<'bbt> {
     luns: [LUN; config::LUNS_PER_CHANNEL],
     last_lun_picked: usize,
     channel_id: usize,
-    bbt: ChannelBadBlockTable,
+    bbt: &'bbt ChannelBadBlockTable,
 }
 
 #[derive(Copy, Clone)]
@@ -83,9 +83,9 @@ pub enum ProvisionError {
     NoFreePage,
 }
 
-impl ChannelProvisioner {
-    pub fn new(channel_id: usize, bbt: ChannelBadBlockTable) -> Self {
-        ChannelProvisioner {
+impl ChannelProvisioner <'_> {
+    pub fn new<'bbt>(channel_id: usize, bbt: &'bbt ChannelBadBlockTable) -> Self {
+        ChannelProvisioner<'bbt> {
             luns: [LUN {
                 free: RingBuffer::new(),
                 used: RingBuffer::new(),
