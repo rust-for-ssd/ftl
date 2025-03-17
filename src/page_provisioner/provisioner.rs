@@ -2,7 +2,7 @@ use crate::bad_block_table::table::ChannelBadBlockTable;
 use crate::config;
 use crate::{
     bad_block_table::table::BlockStatus,
-    media_manager::stub::{PhysicalBlockAddress, PhysicalPageAddress},
+    core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     utils::ring_buffer::RingBuffer,
 };
 use core::array::from_fn;

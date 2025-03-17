@@ -1,9 +1,7 @@
 use crate::{
     config,
-    media_manager::stub::{
-        MediaManager, MediaManagerError, PhysicalBlockAddress, PhysicalBlockAddressError,
-        PhysicalPageAddress,
-    },
+    core::address::{PhysicalBlockAddress, PhysicalPageAddress},
+    media_manager::stub::{MediaManager, MediaManagerError},
 };
 
 #[derive(Copy, Clone)]

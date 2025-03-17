@@ -1,17 +1,5 @@
-pub struct PhysicalPageAddress {
-    pub channel: usize,
-    pub lun: usize,
-    pub plane: usize,
-    pub block: usize,
-    pub page: usize,
-}
+use crate::core::address::{PhysicalBlockAddress, PhysicalPageAddress};
 
-pub struct PhysicalBlockAddress {
-    pub channel: usize,
-    pub lun: usize,
-    pub plane: usize,
-    pub block: usize,
-}
 pub struct MediaManager;
 pub enum PhysicalBlockAddressError {
     Reserved,
@@ -36,18 +24,6 @@ impl MediaManager {
     }
 
     pub fn write_page(ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
-        todo!()
-    }
-}
-
-impl PhysicalPageAddress {
-    pub fn is_reserved(&self) -> bool {
-        todo!()
-    }
-}
-
-impl PhysicalBlockAddress {
-    pub fn is_reserved(&self) -> bool {
         todo!()
     }
 }
