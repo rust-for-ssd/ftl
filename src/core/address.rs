@@ -24,6 +24,7 @@ impl PhysicalPageAddress {
 }
 
 pub type CompactPhysicalPageAddress = usize; 
+pub type LogicalPageAddress = usize; //range [0, config::N_pages]
 
 
 impl Into<usize> for PhysicalPageAddress {
