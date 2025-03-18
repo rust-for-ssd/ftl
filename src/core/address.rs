@@ -1,6 +1,7 @@
 use crate::config::{BLOCKS_PER_PLANE, N_CHANNELS, PAGES_PER_BLOCK, PLANES_PER_LUN, TOTAL_PAGES};
 
 
+#[derive(Clone, Copy)]
 pub struct PhysicalPageAddress {
     pub channel: usize,
     pub lun: usize,

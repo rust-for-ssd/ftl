@@ -1,10 +1,10 @@
-use crate::bad_block_table::table::{ChannelBadBlockTable, GlobalBadBlockTable};
-use crate::{config, core};
+use crate::bad_block_table::table::{BadBlockTable, ChannelBadBlockTable};
 use crate::{
     bad_block_table::table::BlockStatus,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     utils::ring_buffer::RingBuffer,
 };
+use crate::{config, core};
 
 // Page provison: gives a physical page adress (ppa) to an available page
 // - To provision a block we need:
@@ -15,8 +15,8 @@ use crate::{
 // - Extra:
 // - We don't want to provison two blocks in the same lun, since we cannot parallelize I/Os then.
 // - Maybe round-robin fashion
-pub struct GlobalProvisoner {
-    channel_provisioners: [ChannelProvisioner; config::N_CHANNELS],
+pub struct Provisoner {
+    pub channel_provisioners: [ChannelProvisioner; config::N_CHANNELS],
     last_channel_provisioned: usize,
 }
 
@@ -31,11 +31,10 @@ const fn generate_channel_provisioners<const N: usize>() -> [ChannelProvisioner;
     return arr;
 }
 
-
-impl GlobalProvisoner {
+impl Provisoner {
     pub const fn new() -> Self {
-        GlobalProvisoner {
-            channel_provisioners: generate_channel_provisioners::<{config::N_CHANNELS}>(),
+        Provisoner {
+            channel_provisioners: generate_channel_provisioners::<{ config::N_CHANNELS }>(),
             last_channel_provisioned: 0,
         }
     }
@@ -58,23 +57,23 @@ impl GlobalProvisoner {
 }
 
 #[derive(Copy, Clone)]
-struct ChannelProvisioner {
-    luns: [LUN; config::LUNS_PER_CHANNEL],
-    last_lun_picked: usize,
-    channel_id: usize,
+pub struct ChannelProvisioner {
+   pub luns: [LUN; config::LUNS_PER_CHANNEL],
+   pub last_lun_picked: usize,
+   pub channel_id: usize,
 }
 
 #[derive(Copy, Clone)]
-struct LUN {
-    free: RingBuffer<Block, { config::BLOCKS_PER_LUN }>,
-    used: RingBuffer<Block, { config::BLOCKS_PER_LUN }>,
-    partially_used: RingBuffer<BlockWithPageInfo, { config::BLOCKS_PER_LUN }>,
+pub struct LUN {
+    pub free: RingBuffer<Block, { config::BLOCKS_PER_LUN }>,
+    pub used: RingBuffer<Block, { config::BLOCKS_PER_LUN }>,
+    pub partially_used: RingBuffer<BlockWithPageInfo, { config::BLOCKS_PER_LUN }>,
 }
 
 #[derive(Copy, Clone)]
-struct Block {
-    id: usize,
-    plane_id: usize,
+pub struct Block {
+    pub id: usize,
+    pub plane_id: usize,
 }
 
 #[derive(Copy, Clone)]

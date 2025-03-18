@@ -4,13 +4,13 @@ use crate::{
     media_manager::stub::{MediaManager, MediaManagerError},
 };
 
-pub struct GlobalBadBlockTable {
+pub struct BadBlockTable {
     pub channel_bad_block_tables: [ChannelBadBlockTable; config::N_CHANNELS],
 }
 
-impl GlobalBadBlockTable {
+impl BadBlockTable {
     pub const fn new() -> Self {
-        GlobalBadBlockTable {
+        BadBlockTable {
             channel_bad_block_tables: generate_channel_bbts::<{ config::N_CHANNELS }>(),
         }
     }
@@ -27,28 +27,23 @@ impl GlobalBadBlockTable {
 #[derive(Copy, Clone)]
 pub struct ChannelBadBlockTable {
     n_bad_blocks: usize,
-    channel: Channel,
+    pub luns: [LUN; config::LUNS_PER_CHANNEL],
     channel_id: usize,
     current_page: usize,
     version: usize,
 }
 
 #[derive(Copy, Clone)]
-struct Channel {
-    luns: [LUN; config::LUNS_PER_CHANNEL],
+pub struct LUN {
+    pub planes: [Plane; config::PLANES_PER_LUN],
 }
 
 #[derive(Copy, Clone)]
-struct LUN {
-    planes: [Plane; config::PLANES_PER_LUN],
+pub struct Plane {
+    pub blocks: [BlockStatus; config::BLOCKS_PER_PLANE],
 }
 
-#[derive(Copy, Clone)]
-struct Plane {
-    blocks: [BlockStatus; config::BLOCKS_PER_PLANE],
-}
-
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum BlockStatus {
     Good,
     Bad,
@@ -84,17 +79,13 @@ const fn generate_channel_bbts<const N: usize>() -> [ChannelBadBlockTable; N] {
 
 impl ChannelBadBlockTable {
     pub const fn new(channel_id: usize) -> Self {
-        let channel = Channel {
+        ChannelBadBlockTable {
+            n_bad_blocks: 0,
             luns: [LUN {
                 planes: [Plane {
                     blocks: [BlockStatus::Good; config::BLOCKS_PER_PLANE],
                 }; config::PLANES_PER_LUN],
             }; config::LUNS_PER_CHANNEL],
-        };
-
-        ChannelBadBlockTable {
-            n_bad_blocks: 0,
-            channel,
             channel_id,
             current_page: 0,
             version: 0,
@@ -102,7 +93,7 @@ impl ChannelBadBlockTable {
     }
 
     fn factory_init(&mut self) -> Result<(), BadBlockTableError> {
-        for (lun_id, lun) in self.channel.luns.iter_mut().enumerate() {
+        for (lun_id, lun) in self.luns.iter_mut().enumerate() {
             for (plane_id, plane) in lun.planes.iter_mut().enumerate() {
                 for (block_id, block) in plane.blocks.iter_mut().enumerate() {
                     let pba: PhysicalBlockAddress = PhysicalBlockAddress {
@@ -169,7 +160,7 @@ impl ChannelBadBlockTable {
             return BlockStatus::Reserved;
         }
 
-        let lun = self.channel.luns[pba.lun];
+        let lun = self.luns[pba.lun];
         let plane = lun.planes[pba.plane as usize];
         return plane.blocks[pba.block];
     }
