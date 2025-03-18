@@ -21,8 +21,8 @@ pub struct GlobalProvisoner<'bbt> {
     last_channel_provisioned: usize,
 }
 
-impl <'bbt> GlobalProvisoner  {
-    pub fn new(bbt: &GlobalBadBlockTable) -> Self {
+impl <'bbt> GlobalProvisoner <'bbt>  {
+    pub fn new(bbt: &'bbt GlobalBadBlockTable) -> Self {
         GlobalProvisoner {
             channel_provisioners: from_fn(|id| ChannelProvisioner::new(id, &bbt.channel_bad_block_tables[id])),
             last_channel_provisioned: 0,
@@ -83,9 +83,9 @@ pub enum ProvisionError {
     NoFreePage,
 }
 
-impl ChannelProvisioner <'_> {
-    pub fn new<'bbt>(channel_id: usize, bbt: &'bbt ChannelBadBlockTable) -> Self {
-        ChannelProvisioner<'bbt> {
+impl <'bbt>ChannelProvisioner <'bbt> {
+    pub fn new(channel_id: usize, bbt: &'bbt ChannelBadBlockTable) -> Self {
+        ChannelProvisioner::<'bbt> {
             luns: [LUN {
                 free: RingBuffer::new(),
                 used: RingBuffer::new(),
