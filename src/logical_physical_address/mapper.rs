@@ -11,7 +11,7 @@ pub struct L2P_Mapper {
 
 //refactor to get / set only, decouple
 impl L2P_Mapper {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         L2P_Mapper {
             physical_to_logical: [None; TOTAL_PAGES],
             logical_to_physical: [None; TOTAL_PAGES],

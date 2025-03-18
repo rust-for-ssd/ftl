@@ -1,11 +1,10 @@
 use crate::bad_block_table::table::{ChannelBadBlockTable, GlobalBadBlockTable};
-use crate::config;
+use crate::{config, core};
 use crate::{
     bad_block_table::table::BlockStatus,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     utils::ring_buffer::RingBuffer,
 };
-use core::array::from_fn;
 
 // Page provison: gives a physical page adress (ppa) to an available page
 // - To provision a block we need:
@@ -16,15 +15,27 @@ use core::array::from_fn;
 // - Extra:
 // - We don't want to provison two blocks in the same lun, since we cannot parallelize I/Os then.
 // - Maybe round-robin fashion
-pub struct GlobalProvisoner<'bbt> {
-    channel_provisioners: [ChannelProvisioner<'bbt>; config::N_CHANNELS],
+pub struct GlobalProvisoner {
+    channel_provisioners: [ChannelProvisioner; config::N_CHANNELS],
     last_channel_provisioned: usize,
 }
 
-impl <'bbt> GlobalProvisoner <'bbt>  {
-    pub fn new(bbt: &'bbt GlobalBadBlockTable) -> Self {
+const fn generate_channel_provisioners<const N: usize>() -> [ChannelProvisioner; N] {
+    let mut arr = [ChannelProvisioner::new(0); N];
+
+    let mut i = 0;
+    while i < N {
+        arr[i].channel_id = i;
+        i += 1;
+    }
+    return arr;
+}
+
+
+impl GlobalProvisoner {
+    pub const fn new() -> Self {
         GlobalProvisoner {
-            channel_provisioners: from_fn(|id| ChannelProvisioner::new(id, &bbt.channel_bad_block_tables[id])),
+            channel_provisioners: generate_channel_provisioners::<{config::N_CHANNELS}>(),
             last_channel_provisioned: 0,
         }
     }
@@ -46,11 +57,11 @@ impl <'bbt> GlobalProvisoner <'bbt>  {
     }
 }
 
-struct ChannelProvisioner<'bbt> {
+#[derive(Copy, Clone)]
+struct ChannelProvisioner {
     luns: [LUN; config::LUNS_PER_CHANNEL],
     last_lun_picked: usize,
     channel_id: usize,
-    bbt: &'bbt ChannelBadBlockTable,
 }
 
 #[derive(Copy, Clone)]
@@ -83,17 +94,16 @@ pub enum ProvisionError {
     NoFreePage,
 }
 
-impl <'bbt>ChannelProvisioner <'bbt> {
-    pub fn new(channel_id: usize, bbt: &'bbt ChannelBadBlockTable) -> Self {
-        ChannelProvisioner::<'bbt> {
+impl ChannelProvisioner {
+    pub const fn new(channel_id: usize) -> Self {
+        ChannelProvisioner {
             luns: [LUN {
-                free: RingBuffer::new(),
+                free: RingBuffer::new(), // we assume all 3 lists contain blocks that are not in bbt
                 used: RingBuffer::new(),
                 partially_used: RingBuffer::new(),
             }; config::LUNS_PER_CHANNEL],
             last_lun_picked: 0,
             channel_id,
-            bbt,
         }
     }
 
@@ -114,10 +124,8 @@ impl <'bbt>ChannelProvisioner <'bbt> {
                     block: block.id,
                 };
 
-                if let BlockStatus::Good = self.bbt.get_block_status(&pba) {
-                    lun.used.push(block);
-                    return Ok(pba);
-                }
+                lun.used.push(block);
+                return Ok(pba);
             }
         }
         return Err(ProvisionError::NoFreeBlock);
@@ -164,31 +172,22 @@ impl <'bbt>ChannelProvisioner <'bbt> {
             // NOTE: this gets a free block from the same lun, instead of checking for another partially_used block in another lun
             // This might not be the best behaviour, depending on if it is better to check other lun partially_used
             else if let Some(block) = lun.free.pop() {
-                let pba = PhysicalBlockAddress {
+                let mut block_with_page_info = BlockWithPageInfo {
+                    id: block.id,
+                    plane_id: block.plane_id,
+                    pages: [Page { in_use: false }; config::PAGES_PER_BLOCK],
+                };
+                block_with_page_info.pages[0] = Page { in_use: true };
+
+                lun.partially_used.push(block_with_page_info);
+                let ppa = PhysicalPageAddress {
                     channel: self.channel_id,
-                    lun: lun_id,
+                    lun: self.last_lun_picked,
                     plane: block.plane_id,
                     block: block.id,
+                    page: 0,
                 };
-
-                if let BlockStatus::Good = self.bbt.get_block_status(&pba) {
-                    let mut block_with_page_info = BlockWithPageInfo {
-                        id: block.id,
-                        plane_id: block.plane_id,
-                        pages: [Page { in_use: false }; config::PAGES_PER_BLOCK],
-                    };
-                    block_with_page_info.pages[0] = Page { in_use: true };
-
-                    lun.partially_used.push(block_with_page_info);
-                    let ppa = PhysicalPageAddress {
-                        channel: self.channel_id,
-                        lun: self.last_lun_picked,
-                        plane: block.plane_id,
-                        block: block.id,
-                        page: 0,
-                    };
-                    return Ok(ppa);
-                }
+                return Ok(ppa);
             }
         }
         return Err(ProvisionError::NoFreePage);

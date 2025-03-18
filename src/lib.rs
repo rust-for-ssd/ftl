@@ -10,3 +10,4 @@ pub mod ftl;
 pub mod logical_physical_address;
 pub mod page_provisioner;
 pub mod utils;
+pub mod gc;
