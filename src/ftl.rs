@@ -51,13 +51,13 @@ impl FTL {
 
     pub fn read_page(&self, lpa: LogicalPageAddress) -> Result<PageContent, FTL_ERR> {
         let Some(ppa) = self.l2p_map.get_physical_address(lpa) else {
-            todo!()
+            return Err(FTL_ERR::READ_PAGE);
         };
 
         let Ok(content): Result<PageContent, MediaManagerError> =
             MediaManager::read_page(&PhysicalPageAddress::from(ppa))
         else {
-            todo!()
+            return Err(FTL_ERR::READ_PAGE);
         };
 
         Ok(content)
@@ -67,16 +67,16 @@ impl FTL {
         // Handle metadata in the FTL
         // Get a ppa from the provisoner (provisioners free list are guaranteed to have no bad blocks)
         let Ok(ppa) = self.provisioner.provison_page() else {
-            todo!() //handle error
+            return Err(FTL_ERR::WRITE_PAGE);
         };
         // Map the logical address we want to write to the physical address from the provisioner
         let Ok(()) = self.l2p_map.set_address_pairs(lpa, ppa.into()) else {
-            todo!() //handle error
+            return Err(FTL_ERR::WRITE_PAGE);
         };
 
         // Write the actual data with the media manager
         let Ok(()) = MediaManager::write_page(&ppa) else {
-            todo!() //handle error
+            return Err(FTL_ERR::WRITE_PAGE);
         };
         Ok(())
     }
@@ -86,4 +86,5 @@ type PageContent = [u8; config::BYTES_PER_PAGE];
 
 pub enum FTL_ERR {
     WRITE_PAGE,
+    READ_PAGE,
 }
