@@ -1,6 +1,5 @@
 use crate::config::{BLOCKS_PER_PLANE, N_CHANNELS, PAGES_PER_BLOCK, PLANES_PER_LUN, TOTAL_PAGES};
 
-
 #[derive(Clone, Copy)]
 pub struct PhysicalPageAddress {
     pub channel: usize,
@@ -17,16 +16,35 @@ pub struct PhysicalBlockAddress {
     pub block: usize,
 }
 
-
 impl PhysicalPageAddress {
     pub fn is_reserved(&self) -> bool {
         todo!()
     }
 }
 
-pub type CompactPhysicalPageAddress = usize; 
+pub type CompactPhysicalPageAddress = usize;
 pub type LogicalPageAddress = usize; //range [0, config::N_pages]
 
+impl From<CompactPhysicalPageAddress> for PhysicalPageAddress {
+    fn from(cppa: CompactPhysicalPageAddress) -> Self {
+        let channel = cppa / (TOTAL_PAGES / N_CHANNELS);
+        let mut remainder = cppa % (TOTAL_PAGES / N_CHANNELS);
+        let lun = remainder / (PLANES_PER_LUN * BLOCKS_PER_PLANE * PAGES_PER_BLOCK);
+        remainder = remainder % (PLANES_PER_LUN * BLOCKS_PER_PLANE * PAGES_PER_BLOCK);
+        let plane = remainder / (BLOCKS_PER_PLANE * PAGES_PER_BLOCK);
+        remainder = remainder % (BLOCKS_PER_PLANE * PAGES_PER_BLOCK);
+        let block = remainder / PAGES_PER_BLOCK;
+        let page = remainder % PAGES_PER_BLOCK;
+
+        PhysicalPageAddress {
+            channel,
+            lun,
+            plane,
+            block,
+            page,
+        }
+    }
+}
 
 impl Into<usize> for PhysicalPageAddress {
     fn into(self) -> CompactPhysicalPageAddress {

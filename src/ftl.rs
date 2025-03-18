@@ -1,9 +1,9 @@
 use crate::bad_block_table::table::{BadBlockTable, BlockStatus, ChannelBadBlockTable};
 use crate::config;
-use crate::core::address::LogicalPageAddress;
+use crate::core::address::{LogicalPageAddress, PhysicalPageAddress};
 use crate::gc::gc::GarbageCollector;
 use crate::logical_physical_address::mapper::L2P_Mapper;
-use crate::media_manager::stub::MediaManager;
+use crate::media_manager::stub::{MediaManager, MediaManagerError};
 use crate::page_provisioner::provisioner::{self, Block, Provisoner};
 
 pub struct FTL {
@@ -49,8 +49,18 @@ impl FTL {
         }
     }
 
-    pub fn read_page(&self, lpa: LogicalPageAddress) -> () {
-        todo!()
+    pub fn read_page(&self, lpa: LogicalPageAddress) -> Result<PageContent, FTL_ERR> {
+        let Some(ppa) = self.l2p_map.get_physical_address(lpa) else {
+            todo!()
+        };
+
+        let Ok(content): Result<PageContent, MediaManagerError> =
+            MediaManager::read_page(&PhysicalPageAddress::from(ppa))
+        else {
+            todo!()
+        };
+
+        Ok(content)
     }
 
     pub fn write_page(&mut self, lpa: LogicalPageAddress) -> Result<(), FTL_ERR> {
@@ -71,6 +81,8 @@ impl FTL {
         Ok(())
     }
 }
+
+type PageContent = [u8; config::BYTES_PER_PAGE];
 
 pub enum FTL_ERR {
     WRITE_PAGE,
