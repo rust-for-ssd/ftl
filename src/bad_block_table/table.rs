@@ -14,6 +14,14 @@ impl GlobalBadBlockTable {
             channel_bad_block_tables: generate_channel_bbts::<{ config::N_CHANNELS }>(),
         }
     }
+    pub fn factory_init(&mut self) -> Result<(), BadBlockTableError> {
+        for ch in self.channel_bad_block_tables.iter_mut() {
+            if let Err(e) = ch.factory_init() {
+                return Err(e);
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Copy, Clone)]
