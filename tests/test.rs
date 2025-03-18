@@ -21,4 +21,6 @@ fn main() -> ! {
     loop {}
 }
 
+mod bad_block_table;
+mod page_provisioner;
 mod utils;

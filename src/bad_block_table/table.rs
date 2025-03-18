@@ -1,8 +1,7 @@
 use crate::{
     config,
     media_manager::stub::{
-        MediaManager, MediaManagerError, PhysicalBlockAddress, PhysicalBlockAddressError,
-        PhysicalPageAddress,
+        MediaManager, MediaManagerError, PhysicalBlockAddress, PhysicalPageAddress,
     },
 };
 
@@ -30,7 +29,7 @@ struct Plane {
     blocks: [BlockStatus; config::BLOCKS_PER_PLANE],
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum BlockStatus {
     Good,
     Bad,
@@ -135,6 +134,7 @@ impl ChannelBadBlockTable {
         return Err(BadBlockTableError::RestoreTable);
     }
 
+    // TODO: what about out of bounds reads?
     pub fn get_block_status(&self, pba: &PhysicalBlockAddress) -> BlockStatus {
         if pba.is_reserved() {
             return BlockStatus::Reserved;
@@ -143,5 +143,17 @@ impl ChannelBadBlockTable {
         let lun = self.channel.luns[pba.lun];
         let plane = lun.planes[pba.plane as usize];
         return plane.blocks[pba.block];
+    }
+
+    // TODO: what about out of bounds reads?
+    pub fn set_block_status(&mut self, pba: &PhysicalBlockAddress, status: BlockStatus) -> () {
+        let lun = self.channel.luns[pba.lun];
+        let mut plane = lun.planes[pba.plane as usize];
+
+        if pba.is_reserved() {
+            plane.blocks[pba.block] = BlockStatus::Reserved;
+        } else {
+            plane.blocks[pba.block] = status;
+        }
     }
 }
