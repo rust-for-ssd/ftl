@@ -3,16 +3,15 @@ use crate::{
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     media_manager::stub::{MediaManager, MediaManagerError},
 };
-use core::array::from_fn;
 
 pub struct GlobalBadBlockTable {
     pub channel_bad_block_tables: [ChannelBadBlockTable; config::N_CHANNELS],
 }
 
 impl GlobalBadBlockTable {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         GlobalBadBlockTable {
-            channel_bad_block_tables: from_fn(|id| ChannelBadBlockTable::new(id)),
+            channel_bad_block_tables: generate_channel_bbts::<{ config::N_CHANNELS }>(),
         }
     }
 }
@@ -64,8 +63,19 @@ fn factory_init_get_block_status(pba: &PhysicalBlockAddress) -> BlockStatus {
     }
 }
 
+const fn generate_channel_bbts<const N: usize>() -> [ChannelBadBlockTable; N] {
+    let mut arr = [ChannelBadBlockTable::new(0); N];
+
+    let mut i = 0;
+    while i < N {
+        arr[i].channel_id = i;
+        i += 1;
+    }
+    return arr;
+}
+
 impl ChannelBadBlockTable {
-    pub fn new(channel_id: usize) -> Self {
+    pub const fn new(channel_id: usize) -> Self {
         let channel = Channel {
             luns: [LUN {
                 planes: [Plane {

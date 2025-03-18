@@ -2,13 +2,16 @@ use crate::config;
 use crate::core::address::{LogicalPageAddress};
 use crate::logical_physical_address::mapper::L2P_Mapper;
 use crate::page_provisioner::provisioner::GlobalProvisoner;
-use crate::bad_block_table::table::ChannelBadBlockTable;
+use crate::bad_block_table::table::{ChannelBadBlockTable, GlobalBadBlockTable};
+
+use core::array::from_fn;
+
+static bbt : GlobalBadBlockTable = GlobalBadBlockTable::new();
 
 pub struct FTL {
     l2p_map: L2P_Mapper,
     provisioner: GlobalProvisoner,
-    bb_tables: [ChannelBadBlockTable; config::N_CHANNELS], 
-
+    bbt: GlobalBadBlockTable, 
 }
 
 impl FTL {
