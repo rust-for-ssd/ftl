@@ -1,4 +1,9 @@
-use crate::core::address::{PhysicalBlockAddress, PhysicalPageAddress};
+use crate::{
+    config,
+    core::address::{PhysicalBlockAddress, PhysicalPageAddress},
+};
+
+use core::mem::transmute_copy;
 
 pub struct MediaManager;
 pub enum PhysicalBlockAddressError {
@@ -15,15 +20,16 @@ pub enum MediaManagerError {
 
 impl MediaManager {
     pub fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
-        todo!()
+        Ok(())
     }
 
     pub fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
-        // TODO: should have a proper return type instead of Ok(())
-        todo!()
+        // We simulate
+        let page = [0; config::BYTES_PER_PAGE];
+        Ok(unsafe { transmute_copy::<_, T>(&page) })
     }
 
     pub fn write_page(ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
-        todo!()
+        Ok(())
     }
 }
