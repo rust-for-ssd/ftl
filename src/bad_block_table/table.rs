@@ -2,10 +2,9 @@ use crate::{
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     ftl::{FTL, GLOBAL_FTL},
-    media_manager::stub::{MediaManager, MediaManagerError},
 };
 
-use crate::media_manager::stub::MediaOperations;
+use crate::media_manager::operations::{MediaManagerError, MediaOperations};
 
 pub struct BadBlockTable {
     pub channel_bad_block_tables: [ChannelBadBlockTable; config::N_CHANNELS],

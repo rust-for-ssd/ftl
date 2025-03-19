@@ -6,7 +6,7 @@
 #![test_runner(rv_unit::test_runner)]
 
 use ftl::ftl::FTL;
-use ftl::media_manager::stub::{MediaManager, MediaOperations, MockMediaManager};
+use ftl::media_manager::operations::MediaOperations;
 
 use riscv_rt::entry;
 
@@ -24,10 +24,12 @@ fn main() -> ! {
     loop {}
 }
 
-#[test_case]
-pub fn ftl() {
-    let mm: MockMediaManager = MockMediaManager::new();
-    let global_ftl: FTL<MockMediaManager> = FTL::new(mm);
-}
+// #[test_case]
+// pub fn ftl() {
+//     let mm: MockMediaManager = MockMediaManager::new();
+//     let global_ftl: FTL<MockMediaManager> = FTL::new(mm);
+// }
 
-mod utils;
+// use tests::ftl;
+
+mod unit;
