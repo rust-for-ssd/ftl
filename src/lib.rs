@@ -1,10 +1,13 @@
 #![no_std]
 #![no_main]
 
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod media_manager;
 
-pub struct MyStruct {
-    x: i32,
-}
+pub mod bad_block_table;
+pub mod config;
+pub mod core;
+pub mod ftl;
+pub mod logical_physical_address;
+pub mod page_provisioner;
+pub mod utils;
+pub mod gc;

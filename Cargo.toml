@@ -1,5 +1,5 @@
 [package]
-name = "ssd_rs"
+name = "ftl"
 version = "0.1.0"
 edition = "2024"
 
@@ -14,7 +14,7 @@ inherits = "release"
 opt-level = "s"
 
 [lib]
-name = "ssd_rs"
+name = "ftl"
 # crate-type = ["lib", "staticlib"]
 test = false
 harness = false
