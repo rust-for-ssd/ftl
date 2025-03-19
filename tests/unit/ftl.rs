@@ -38,9 +38,10 @@ impl MediaOperations for MockMediaManager {
 
 #[test_case]
 pub fn ftl() {
-    let mm: MockMediaManager = MockMediaManager::new();
-    let _global_ftl: FTL<MockMediaManager> = FTL::new(mm);
+    // let mm: MockMediaManager = MockMediaManager::new();
+    // let _global_ftl: FTL<MockMediaManager> = FTL::new(mm);
 
     let ftl_size = size_of::<FTL<MockMediaManager>>();
+    // let global_ftl_size = size_of
     unsafeprintln!("FTL size is {} MB", ftl_size as f32 / (1024.0 * 1024.0));
 }
