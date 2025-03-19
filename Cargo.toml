@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 riscv = "0.13.0"
 riscv-rt = "0.14.0"
-semihosting = { version = "0.1.19", features = ["panic-handler", "stdio"] }
+semihosting = { version = "0.1.19", features = ["stdio"] }
 rv_unit = { git = "https://github.com/rust-for-ssd/rv_unit.git" }
 
 [profile.small_release]
