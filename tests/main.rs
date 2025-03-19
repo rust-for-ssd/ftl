@@ -5,7 +5,7 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(rv_unit::test_runner)]
 
-use ftl::config::TOTAL_MB;
+use ftl::config::{TOTAL_MB, TOTAL_GB};
 use ftl::unsafeprintln;
 use ftl::utils::print::QemuUart;
 use riscv_rt::entry;
@@ -21,7 +21,7 @@ pub fn panic(info: &core::panic::PanicInfo) -> ! {
 #[entry]
 fn main() -> ! {
     unsafeprintln!("--------------------------");
-    unsafeprintln!("Testing SSD of size {} MB", TOTAL_MB);
+    unsafeprintln!("Testing SSD of size {} GB", TOTAL_GB);
     unsafeprintln!("--------------------------");
 
     test_main();
