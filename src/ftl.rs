@@ -1,16 +1,18 @@
-use crate::bad_block_table::table::{BadBlockTable, BlockStatus, ChannelBadBlockTable};
+use crate::bad_block_table::table::{BadBlockTable, BlockStatus};
 use crate::config;
 use crate::core::address::{LogicalPageAddress, PhysicalPageAddress};
 use crate::gc::gc::GarbageCollector;
 use crate::logical_physical_address::mapper::L2P_Mapper;
-use crate::media_manager::stub::{MediaManager, MediaManagerError};
-use crate::page_provisioner::provisioner::{self, Block, Provisoner};
+use crate::media_manager::media_manager::{MediaManager, MediaManagerError};
+use crate::media_manager::stub::MediaManagerStub;
+use crate::page_provisioner::provisioner::{Block, Provisoner};
 
 pub struct FTL {
     pub l2p_map: L2P_Mapper,
     pub provisioner: Provisoner,
     pub bbt: BadBlockTable,
     pub gc: GarbageCollector,
+    pub mm: Option<&dyn MediaManager>,
 }
 
 pub static GLOBAL_FTL: FTL = FTL::new();
@@ -22,6 +24,7 @@ impl FTL {
             provisioner: Provisoner::new(),
             bbt: BadBlockTable::new(),
             gc: GarbageCollector::new(),
+            mm: MMS,
         }
     }
 
@@ -49,34 +52,34 @@ impl FTL {
         }
     }
 
-    pub fn read_page(&self, lpa: LogicalPageAddress) -> Result<PageContent, FTL_ERR> {
+    pub fn read_page(&self, lpa: LogicalPageAddress) -> Result<PageContent, FtlErr> {
         let Some(ppa) = self.l2p_map.get_physical_address(lpa) else {
-            return Err(FTL_ERR::READ_PAGE);
+            return Err(FtlErr::ReadPage);
         };
 
         let Ok(content): Result<PageContent, MediaManagerError> =
-            MediaManager::read_page(&PhysicalPageAddress::from(ppa))
+            MediaManagerStub::read_page(&PhysicalPageAddress::from(ppa))
         else {
-            return Err(FTL_ERR::READ_PAGE);
+            return Err(FtlErr::ReadPage);
         };
 
         Ok(content)
     }
 
-    pub fn write_page(&mut self, lpa: LogicalPageAddress) -> Result<(), FTL_ERR> {
+    pub fn write_page(&mut self, lpa: LogicalPageAddress) -> Result<(), FtlErr> {
         // Handle metadata in the FTL
         // Get a ppa from the provisoner (provisioners free list are guaranteed to have no bad blocks)
         let Ok(ppa) = self.provisioner.provison_page() else {
-            return Err(FTL_ERR::WRITE_PAGE);
+            return Err(FtlErr::WritePage);
         };
         // Map the logical address we want to write to the physical address from the provisioner
         let Ok(()) = self.l2p_map.set_address_pairs(lpa, ppa.into()) else {
-            return Err(FTL_ERR::WRITE_PAGE);
+            return Err(FtlErr::WritePage);
         };
 
         // Write the actual data with the media manager
-        let Ok(()) = MediaManager::write_page(&ppa) else {
-            return Err(FTL_ERR::WRITE_PAGE);
+        let Ok(()) = MediaManagerStub::write_page(&ppa) else {
+            return Err(FtlErr::WritePage);
         };
         Ok(())
     }
@@ -84,7 +87,7 @@ impl FTL {
 
 type PageContent = [u8; config::BYTES_PER_PAGE];
 
-pub enum FTL_ERR {
-    WRITE_PAGE,
-    READ_PAGE,
+pub enum FtlErr {
+    WritePage,
+    ReadPage,
 }

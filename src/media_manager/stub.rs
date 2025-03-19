@@ -5,31 +5,25 @@ use crate::{
 
 use core::mem::transmute_copy;
 
-pub struct MediaManager;
-pub enum PhysicalBlockAddressError {
-    Reserved,
-    InvalidAddress,
-    BadBlock,
-}
+use super::media_manager::MediaManager;
+use super::media_manager::MediaManagerError;
 
-pub enum MediaManagerError {
-    Write,
-    Read,
-    Erase,
-}
+pub struct MediaManagerStub;
 
-impl MediaManager {
-    pub fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
+const MMS: MediaManagerStub = MediaManagerStub {};
+
+impl MediaManager for MediaManagerStub {
+    fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
 
-    pub fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
+    fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
         // We simulate
         let page = [0; config::BYTES_PER_PAGE];
         Ok(unsafe { transmute_copy::<_, T>(&page) })
     }
 
-    pub fn write_page(ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
+    fn write_page(ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
 }
