@@ -5,9 +5,6 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(rv_unit::test_runner)]
 
-use ftl::ftl::FTL;
-use ftl::media_manager::operations::MediaOperations;
-
 use riscv_rt::entry;
 
 // -- Custom panic handler

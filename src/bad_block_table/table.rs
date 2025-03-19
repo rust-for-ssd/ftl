@@ -1,7 +1,7 @@
 use crate::{
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
-    ftl::{FTL, GLOBAL_FTL},
+    ftl::GLOBAL_FTL,
 };
 
 use crate::media_manager::operations::{MediaManagerError, MediaOperations};
@@ -28,7 +28,6 @@ impl BadBlockTable {
 
 #[derive(Copy, Clone)]
 pub struct ChannelBadBlockTable {
-    n_bad_blocks: usize,
     pub luns: [LUN; config::LUNS_PER_CHANNEL],
     channel_id: usize,
     current_page: usize,
@@ -82,7 +81,6 @@ const fn generate_channel_bbts<const N: usize>() -> [ChannelBadBlockTable; N] {
 impl ChannelBadBlockTable {
     pub const fn new(channel_id: usize) -> Self {
         ChannelBadBlockTable {
-            n_bad_blocks: 0,
             luns: [LUN {
                 planes: [Plane {
                     blocks: [BlockStatus::Good; config::BLOCKS_PER_PLANE],

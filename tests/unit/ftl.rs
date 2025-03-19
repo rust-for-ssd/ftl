@@ -15,21 +15,21 @@ impl MockMediaManager {
 }
 
 impl MediaOperations for MockMediaManager {
-    fn erase_block(&self, pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
+    fn erase_block(&self, _pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
 
-    fn read_page<T>(&self, ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
+    fn read_page<T>(&self, _ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
         // We simulate
         let page = [0; config::BYTES_PER_PAGE];
         Ok(unsafe { transmute_copy::<_, T>(&page) })
     }
 
-    fn read_block<T>(&self, pba: &PhysicalBlockAddress) -> Result<T, MediaManagerError> {
+    fn read_block<T>(&self, _pba: &PhysicalBlockAddress) -> Result<T, MediaManagerError> {
         todo!()
     }
 
-    fn write_page(&self, ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
+    fn write_page(&self, _ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
 }
@@ -37,5 +37,5 @@ impl MediaOperations for MockMediaManager {
 #[test_case]
 pub fn ftl() {
     let mm: MockMediaManager = MockMediaManager::new();
-    let global_ftl: FTL<MockMediaManager> = FTL::new(mm);
+    let _global_ftl: FTL<MockMediaManager> = FTL::new(mm);
 }

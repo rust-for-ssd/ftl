@@ -1,18 +1,15 @@
-use crate::config::{PAGES_PER_BLOCK, TOTAL_BLOCKS, TOTAL_PAGES};
-use crate::core::address::{
-    CompactPhysicalPageAddress, LogicalPageAddress, PhysicalBlockAddress, PhysicalPageAddress,
-};
-use crate::provisioner::provisioner::Provisoner;
+use crate::config::TOTAL_PAGES;
+use crate::core::address::{CompactPhysicalPageAddress, LogicalPageAddress};
 
-pub struct L2P_Mapper {
+pub struct L2pMapper {
     physical_to_logical: [Option<LogicalPageAddress>; TOTAL_PAGES],
     logical_to_physical: [Option<CompactPhysicalPageAddress>; TOTAL_PAGES],
 }
 
 //refactor to get / set only, decouple
-impl L2P_Mapper {
+impl L2pMapper {
     pub const fn new() -> Self {
-        L2P_Mapper {
+        L2pMapper {
             physical_to_logical: [None; TOTAL_PAGES],
             logical_to_physical: [None; TOTAL_PAGES],
         }
