@@ -6,19 +6,19 @@ use crate::logical_physical_address::mapper::L2P_Mapper;
 use crate::media_manager::stub::{MediaManager, MediaManagerError, MediaOperations};
 use crate::page_provisioner::provisioner::{self, Block, Provisoner};
 
-pub struct FTL<MM: MediaOperations> {
+pub struct FTL<MediaManager: MediaOperations> {
     pub l2p_map: L2P_Mapper,
     pub provisioner: Provisoner,
     pub bbt: BadBlockTable,
     pub gc: GarbageCollector,
-    pub mm: MM
+    pub mm: MediaManager,
 }
 
 const MM: MediaManager = MediaManager::new();
 pub static GLOBAL_FTL: FTL<MediaManager> = FTL::new(MM);
 
-impl<MM: MediaOperations> FTL<MM> {
-    pub const fn new(mm: MM) -> Self {
+impl<MediaManager: MediaOperations> FTL<MediaManager> {
+    pub const fn new(mm: MediaManager) -> Self {
         FTL {
             l2p_map: L2P_Mapper::new(),
             provisioner: Provisoner::new(),
