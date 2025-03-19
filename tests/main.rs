@@ -6,9 +6,8 @@
 #![test_runner(rv_unit::test_runner)]
 
 use ftl::config::TOTAL_MB;
-use ftl::unsafeprintln;
-use ftl::utils::print::QemuUart;
 use riscv_rt::entry;
+use semihosting::println;
 
 // -- Custom panic handler
 #[panic_handler]
@@ -20,9 +19,9 @@ pub fn panic(info: &core::panic::PanicInfo) -> ! {
 
 #[entry]
 fn main() -> ! {
-    unsafeprintln!("--------------------------");
-    unsafeprintln!("Testing SSD of size {} MB", TOTAL_MB);
-    unsafeprintln!("--------------------------");
+    println!("--------------------------");
+    println!("Testing SSD of size {} MB", TOTAL_MB);
+    println!("--------------------------");
 
     test_main();
     loop {}
