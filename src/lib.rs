@@ -8,5 +8,5 @@ pub mod ftl;
 pub mod gc;
 pub mod logical_physical_address;
 pub mod media_manager;
-pub mod page_provisioner;
+pub mod provisioner;
 pub mod utils;

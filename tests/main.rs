@@ -24,12 +24,4 @@ fn main() -> ! {
     loop {}
 }
 
-// #[test_case]
-// pub fn ftl() {
-//     let mm: MockMediaManager = MockMediaManager::new();
-//     let global_ftl: FTL<MockMediaManager> = FTL::new(mm);
-// }
-
-// use tests::ftl;
-
 mod unit;
