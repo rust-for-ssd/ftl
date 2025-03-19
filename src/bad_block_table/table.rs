@@ -131,7 +131,7 @@ impl ChannelBadBlockTable {
     }
 
     // assumption: the bb table can be contained in a single page
-    fn restore_state_from_boot(channel_id: usize) -> Result<Self, BadBlockTableError> {
+    pub fn restore_state_from_boot(channel_id: usize) -> Result<Self, BadBlockTableError> {
         let mut latest_version = 0;
 
         for page in 0..config::PAGES_PER_BLOCK {
@@ -140,7 +140,7 @@ impl ChannelBadBlockTable {
                 lun: 0,
                 plane: 0,
                 block: 0,
-                page: page,
+                page,
             };
 
             if let Ok(table_from_disk) = GLOBAL_FTL.mm.read_page::<ChannelBadBlockTable>(ppa) {
