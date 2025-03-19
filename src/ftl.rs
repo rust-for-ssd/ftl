@@ -7,19 +7,19 @@ use crate::media_manager::operations::{MediaManagerError, MediaOperations};
 use crate::media_manager::stub::MediaManager;
 use crate::provisioner::provisioner::{Block, Provisoner};
 
-pub struct FTL<MediaManager: MediaOperations> {
+pub struct FTL<'a> {
     pub l2p_map: L2pMapper,
     pub provisioner: Provisoner,
     pub bbt: BadBlockTable,
     pub gc: GarbageCollector,
-    pub mm: MediaManager,
+    pub mm: &'a dyn MediaOperations,
 }
 
 const MM: MediaManager = MediaManager::new();
-pub static GLOBAL_FTL: FTL<MediaManager> = FTL::new(MM);
+pub static mut GLOBAL_FTL: FTL = FTL::new(&MM);
 
-impl<MediaManager: MediaOperations> FTL<MediaManager> {
-    pub const fn new(mm: MediaManager) -> Self {
+impl<'a> FTL<'a> {
+    pub const fn new(mm: &'a dyn MediaOperations) -> Self {
         FTL {
             l2p_map: L2pMapper::new(),
             provisioner: Provisoner::new(),
@@ -60,7 +60,8 @@ impl<MediaManager: MediaOperations> FTL<MediaManager> {
 
         let Ok(content): Result<PageContent, MediaManagerError> =
             // self.mm.read_page(&PhysicalPageAddress::from(ppa))
-            self.mm.read_page(&PhysicalPageAddress::from(ppa))
+            // self.mm.read_page(&PhysicalPageAddress::from(ppa))
+            todo!()
         else {
             return Err(FtlErr::ReadPage);
         };

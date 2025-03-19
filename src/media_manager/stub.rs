@@ -20,15 +20,15 @@ impl MediaOperations for MediaManager {
         Ok(())
     }
 
-    fn read_page<T>(&self, _ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
-        // We simulate
-        let page = [0; config::BYTES_PER_PAGE];
-        Ok(unsafe { transmute_copy::<_, T>(&page) })
-    }
+    // fn read_page<T>(&self, _ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
+    //     // We simulate
+    //     let page = [0; config::BYTES_PER_PAGE];
+    //     Ok(unsafe { transmute_copy::<_, T>(&page) })
+    // }
 
-    fn read_block<T>(&self, _pba: &PhysicalBlockAddress) -> Result<T, MediaManagerError> {
-        todo!()
-    }
+    // fn read_block<T>(&self, _pba: &PhysicalBlockAddress) -> Result<T, MediaManagerError> {
+    //     todo!()
+    // }
 
     fn write_page(&self, _ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
         Ok(())

@@ -61,10 +61,11 @@ fn factory_init_get_block_status(pba: &PhysicalBlockAddress) -> BlockStatus {
         return BlockStatus::Reserved;
     }
 
-    match GLOBAL_FTL.mm.read_block(pba) {
-        Ok(()) => BlockStatus::Good,
-        Err(_) => BlockStatus::Bad,
-    }
+    todo!();
+    // match GLOBAL_FTL.mm.read_block(pba) {
+    //     Ok(()) => BlockStatus::Good,
+    //     Err(_) => BlockStatus::Bad,
+    // }
 }
 
 const fn generate_channel_bbts<const N: usize>() -> [ChannelBadBlockTable; N] {
@@ -127,7 +128,8 @@ impl ChannelBadBlockTable {
             page: self.current_page,
         };
 
-        return GLOBAL_FTL.mm.read_page(ppa);
+        todo!();
+        // return GLOBAL_FTL.mm.read_page(ppa);
     }
 
     // assumption: the bb table can be contained in a single page
@@ -143,13 +145,14 @@ impl ChannelBadBlockTable {
                 page,
             };
 
-            if let Ok(table_from_disk) = GLOBAL_FTL.mm.read_page::<ChannelBadBlockTable>(ppa) {
-                if latest_version < table_from_disk.version {
-                    latest_version = table_from_disk.version;
-                } else {
-                    return Ok(table_from_disk);
-                }
-            }
+            todo!();
+            // if let Ok(table_from_disk) = GLOBAL_FTL.mm.read_page::<ChannelBadBlockTable>(ppa) {
+            //     if latest_version < table_from_disk.version {
+            //         latest_version = table_from_disk.version;
+            //     } else {
+            //         return Ok(table_from_disk);
+            //     }
+            // }
         }
 
         return Err(BadBlockTableError::RestoreTable);
