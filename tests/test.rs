@@ -5,6 +5,9 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(rv_unit::test_runner)]
 
+use ftl::ftl::FTL;
+use ftl::media_manager::stub::{MediaManager, MediaOperations, MockMediaManager};
+
 use riscv_rt::entry;
 
 // -- Custom panic handler
@@ -19,6 +22,12 @@ pub fn panic(info: &core::panic::PanicInfo) -> ! {
 fn main() -> ! {
     test_main();
     loop {}
+}
+
+#[test_case]
+pub fn ftl() {
+    let mm: MockMediaManager = MockMediaManager::new();
+    let global_ftl: FTL<MockMediaManager> = FTL::new(mm);
 }
 
 mod utils;

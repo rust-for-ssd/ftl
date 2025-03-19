@@ -1,8 +1,11 @@
 use crate::{
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
+    ftl::{FTL, GLOBAL_FTL},
     media_manager::stub::{MediaManager, MediaManagerError},
 };
+
+use crate::media_manager::stub::MediaOperations;
 
 pub struct BadBlockTable {
     pub channel_bad_block_tables: [ChannelBadBlockTable; config::N_CHANNELS],
@@ -60,7 +63,7 @@ fn factory_init_get_block_status(pba: &PhysicalBlockAddress) -> BlockStatus {
         return BlockStatus::Reserved;
     }
 
-    match MediaManager::erase_block(pba) {
+    match GLOBAL_FTL.mm.read_block(pba) {
         Ok(()) => BlockStatus::Good,
         Err(_) => BlockStatus::Bad,
     }
@@ -127,7 +130,7 @@ impl ChannelBadBlockTable {
             page: self.current_page,
         };
 
-        return MediaManager::write_page(ppa);
+        return GLOBAL_FTL.mm.read_page(ppa);
     }
 
     // assumption: the bb table can be contained in a single page
@@ -143,7 +146,7 @@ impl ChannelBadBlockTable {
                 page: page,
             };
 
-            if let Ok(table_from_disk) = MediaManager::read_page::<ChannelBadBlockTable>(ppa) {
+            if let Ok(table_from_disk) = GLOBAL_FTL.mm.read_page::<ChannelBadBlockTable>(ppa) {
                 if latest_version < table_from_disk.version {
                     latest_version = table_from_disk.version;
                 } else {
