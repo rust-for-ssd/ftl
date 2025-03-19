@@ -1,9 +1,11 @@
-use core::mem::transmute_copy;
+use core::mem::{size_of, transmute_copy};
+use ftl::utils::print::QemuUart;
 use ftl::{
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     ftl::FTL,
     media_manager::operations::{MediaManagerError, MediaOperations},
+    unsafeprintln,
 };
 
 pub struct MockMediaManager {}
@@ -38,4 +40,7 @@ impl MediaOperations for MockMediaManager {
 pub fn ftl() {
     let mm: MockMediaManager = MockMediaManager::new();
     let _global_ftl: FTL<MockMediaManager> = FTL::new(mm);
+
+    let ftl_size = size_of::<FTL<MockMediaManager>>();
+    unsafeprintln!("FTL size is {} MB", ftl_size as f32 / (1024.0 * 1024.0));
 }
