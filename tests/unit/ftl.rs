@@ -1,21 +1,20 @@
-use crate::{
+use core::mem::transmute_copy;
+use ftl::{
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
+    ftl::FTL,
+    media_manager::operations::{MediaManagerError, MediaOperations},
 };
 
-use core::mem::transmute_copy;
+pub struct MockMediaManager {}
 
-use super::operations::{MediaManagerError, MediaOperations};
-
-pub struct MediaManager;
-
-impl MediaManager {
+impl MockMediaManager {
     pub const fn new() -> Self {
-        MediaManager {}
+        MockMediaManager {}
     }
 }
 
-impl MediaOperations for MediaManager {
+impl MediaOperations for MockMediaManager {
     fn erase_block(&self, pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
@@ -33,4 +32,10 @@ impl MediaOperations for MediaManager {
     fn write_page(&self, ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
+}
+
+#[test_case]
+pub fn ftl() {
+    let mm: MockMediaManager = MockMediaManager::new();
+    let global_ftl: FTL<MockMediaManager> = FTL::new(mm);
 }

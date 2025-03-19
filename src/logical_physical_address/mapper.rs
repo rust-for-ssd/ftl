@@ -2,7 +2,7 @@ use crate::config::{PAGES_PER_BLOCK, TOTAL_BLOCKS, TOTAL_PAGES};
 use crate::core::address::{
     CompactPhysicalPageAddress, LogicalPageAddress, PhysicalBlockAddress, PhysicalPageAddress,
 };
-use crate::page_provisioner::provisioner::Provisoner;
+use crate::provisioner::provisioner::Provisoner;
 
 pub struct L2P_Mapper {
     physical_to_logical: [Option<LogicalPageAddress>; TOTAL_PAGES],
