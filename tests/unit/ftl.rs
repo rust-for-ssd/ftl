@@ -1,11 +1,10 @@
-use core::mem::{size_of, transmute_copy};
+use core::mem::transmute_copy;
 use ftl::{
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     ftl::FTL,
     media_manager::operations::{MediaManagerError, MediaOperations},
 };
-use semihosting::println;
 
 pub struct MockMediaManager {}
 
@@ -14,7 +13,7 @@ impl MediaOperations for MockMediaManager {
         Ok(())
     }
 
-    fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
+    fn read_page<T>(_ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
         // We simulate
 
         let page = [0; config::BYTES_PER_PAGE];
@@ -25,7 +24,7 @@ impl MediaOperations for MockMediaManager {
         todo!()
     }
 
-    fn write_page(ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
+    fn write_page(_ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
 }
@@ -33,10 +32,9 @@ impl MediaOperations for MockMediaManager {
 #[test_case]
 pub fn ftl() {
     let mut ftl: FTL<MockMediaManager> = FTL::new();
-    ftl.init();
+    let _ = ftl.init();
 
     for lpa in 0..40 {
         let _ = ftl.write_page(lpa);
     }
 }
-

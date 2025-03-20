@@ -14,9 +14,9 @@ pub fn push_pop_size() {
     let mut rb = RingBuffer::<i32, 8>::new();
     assert_eq!(rb.get_size(), 0);
     assert_eq!(rb.pop(), None);
-    rb.push(1);
-    rb.push(3);
-    rb.push(5);
+    let _ = rb.push(1);
+    let _ = rb.push(3);
+    let _ = rb.push(5);
     assert_eq!(rb.get_size(), 3);
     assert_eq!(rb.pop(), Some(1));
     assert_eq!(rb.get_size(), 2);
@@ -32,14 +32,14 @@ pub fn push_pop_size() {
 #[test_case]
 pub fn cannot_push_more_than_capacity() {
     let mut rb = RingBuffer::<i32, 8>::new();
-    rb.push(1);
-    rb.push(2);
-    rb.push(3);
-    rb.push(4);
-    rb.push(5);
-    rb.push(6);
-    rb.push(7);
-    rb.push(8);
+    let _ = rb.push(1);
+    let _ = rb.push(2);
+    let _ = rb.push(3);
+    let _ = rb.push(4);
+    let _ = rb.push(5);
+    let _ = rb.push(6);
+    let _ = rb.push(7);
+    let _ = rb.push(8);
     let res = rb.push(9);
     assert_eq!(res, Err(RingBufferError::PushAtMaxCapacity))
 }
@@ -47,14 +47,14 @@ pub fn cannot_push_more_than_capacity() {
 #[test_case]
 pub fn can_push_to_max_cap_and_pop() {
     let mut rb = RingBuffer::<i32, 8>::new();
-    rb.push(1);
-    rb.push(2);
-    rb.push(3);
-    rb.push(4);
-    rb.push(5);
-    rb.push(6);
-    rb.push(7);
-    rb.push(8);
+    let _ = rb.push(1);
+    let _ = rb.push(2);
+    let _ = rb.push(3);
+    let _ = rb.push(4);
+    let _ = rb.push(5);
+    let _ = rb.push(6);
+    let _ = rb.push(7);
+    let _ = rb.push(8);
     rb.pop();
     let res = rb.push(9);
     assert_eq!(res, Ok(()))
@@ -74,7 +74,7 @@ pub fn iterate_through_ring_buffer() {
     let test_values = [10, 20, 30, 40];
 
     for val in &test_values {
-        rb.push(*val);
+        let _ = rb.push(*val);
     }
 
     let mut values = [0; 4];
@@ -94,13 +94,13 @@ pub fn iterate_through_ring_buffer() {
 pub fn wraparound() {
     let mut rb = RingBuffer::<i32, 3>::new();
 
-    rb.push(1);
-    rb.push(2);
-    rb.push(3);
+    let _ = rb.push(1);
+    let _ = rb.push(2);
+    let _ = rb.push(3);
 
     assert_eq!(rb.pop(), Some(1));
 
-    rb.push(4);
+    let _ = rb.push(4);
 
     assert_eq!(rb.get_size(), 3);
     assert_eq!(rb.pop(), Some(2));
@@ -113,27 +113,27 @@ pub fn multiple_wraparounds() {
     let mut rb = RingBuffer::<i32, 3>::new();
 
     // First fill
-    rb.push(1);
-    rb.push(2);
-    rb.push(3);
+    let _ = rb.push(1);
+    let _ = rb.push(2);
+    let _ = rb.push(3);
     assert_eq!(rb.pop(), Some(1));
     assert_eq!(rb.pop(), Some(2));
 
     // Cycle 1
-    rb.push(4);
-    rb.push(5);
+    let _ = rb.push(4);
+    let _ = rb.push(5);
     assert_eq!(rb.get_size(), 3);
     assert_eq!(rb.pop(), Some(3));
     assert_eq!(rb.pop(), Some(4));
     assert_eq!(rb.pop(), Some(5));
 
     // Cycle 2
-    rb.push(6);
-    rb.push(7);
-    rb.push(8);
+    let _ = rb.push(6);
+    let _ = rb.push(7);
+    let _ = rb.push(8);
     assert_eq!(rb.pop(), Some(6));
 
-    rb.push(9);
+    let _ = rb.push(9);
     assert_eq!(rb.get_size(), 3);
 
     // Final content
