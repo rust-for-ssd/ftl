@@ -38,7 +38,7 @@ impl MediaOperations for MockMediaManager {
 }
 
 #[test_case]
-pub fn ftl() {
+pub fn init_ftl() {
     // let mm: MockMediaManager = MockMediaManager::new();
     // let _global_ftl: FTL<MockMediaManager> = FTL::new(mm);
 
@@ -48,8 +48,18 @@ pub fn ftl() {
 
     // Override the global MEDIA_MANAGER for testing
     // pub static MEDIA_MANAGER: MockMediaManager = MockMediaManager::new();
-    let ftl: FTL = FTL::new();
-    let content = ftl.read_page(1);
+    let mut ftl: FTL = FTL::new();
+    let res = ftl.write_page(100);
+    match res {
+        Ok(_) => {
+            unsafeprintln!("Page written successfully");
+        },
+        Err(e) => {
+            unsafeprintln!("Failed to write page");
+        }
+    }
+
+    let content = ftl.read_page(100);
     match content {
         Ok(data) => {
             // Use the data
