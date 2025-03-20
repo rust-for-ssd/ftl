@@ -1,5 +1,5 @@
 // Configurable
-pub const N_CHANNELS: usize = 64 * 2 * 2 * 2 * 2 * 2;
+pub const N_CHANNELS: usize = 64 * 2 * 2;
 pub const LUNS_PER_CHANNEL: usize = 4;
 pub const PLANES_PER_LUN: usize = 1;
 pub const BLOCKS_PER_PLANE: usize = 64; // 1024 might be realistic number, need to update qemu config
