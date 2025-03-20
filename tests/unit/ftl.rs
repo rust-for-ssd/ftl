@@ -41,3 +41,4 @@ pub fn ftl() {
         let _ = ftl.write_page(lpa);
     }
 }
+
