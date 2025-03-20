@@ -19,3 +19,6 @@ name = "ftl"
 # crate-type = ["lib", "staticlib"]
 test = false
 harness = false
+
+[features]
+qemu = []

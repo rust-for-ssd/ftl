@@ -1,9 +1,30 @@
 // Configurable
+// Default values
+#[cfg(not(feature = "qemu"))]
 pub const N_CHANNELS: usize = 64 * 2 * 2;
+#[cfg(not(feature = "qemu"))]
 pub const LUNS_PER_CHANNEL: usize = 4;
+#[cfg(not(feature = "qemu"))]
 pub const PLANES_PER_LUN: usize = 1;
+#[cfg(not(feature = "qemu"))]
 pub const BLOCKS_PER_PLANE: usize = 64; // 1024 might be realistic number, need to update qemu config
+#[cfg(not(feature = "qemu"))]
 pub const PAGES_PER_BLOCK: usize = 64; // 64 to 512 pages per block
+#[cfg(not(feature = "qemu"))]
+pub const BYTES_PER_PAGE: usize = 8 * 4096; // 4 to 32 kilobytes per page -- this does not affect the FTL size!
+
+// Override only the values that differ for qemu
+#[cfg(feature = "qemu")]
+pub const N_CHANNELS: usize = 8;
+#[cfg(feature = "qemu")]
+pub const LUNS_PER_CHANNEL: usize = 4;
+#[cfg(feature = "qemu")]
+pub const PLANES_PER_LUN: usize = 1;
+#[cfg(feature = "qemu")]
+pub const BLOCKS_PER_PLANE: usize = 64; // 1024 might be realistic number, need to update qemu config
+#[cfg(feature = "qemu")]
+pub const PAGES_PER_BLOCK: usize = 64; // 64 to 512 pages per block
+#[cfg(feature = "qemu")]
 pub const BYTES_PER_PAGE: usize = 8 * 4096; // 4 to 32 kilobytes per page -- this does not affect the FTL size!
 
 //Derivatives
