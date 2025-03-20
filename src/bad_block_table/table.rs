@@ -1,4 +1,4 @@
-use core::mem::MaybeUninit;
+use core::mem::{MaybeUninit, transmute};
 
 //TODO: we need a function to save the bbt state at some point.
 
@@ -30,17 +30,27 @@ impl BadBlockTable {
     }
 
     pub fn restore_state_from_boot<MM: MediaManager>() -> Result<Self, BadBlockTableError> {
-        let mut bbt = BadBlockTable {
-            channel_bad_block_tables: unsafe { MaybeUninit::uninit().assume_init() },
-        };
+        let mut ch_bbts: [MaybeUninit<ChannelBadBlockTable>; config::N_CHANNELS] =
+            [MaybeUninit::uninit(); config::N_CHANNELS];
 
-        for ch_id in 0..bbt.channel_bad_block_tables.len() {
+        for (ch_id, uninit_ch_btt) in ch_bbts.iter_mut().enumerate() {
             let Ok(ch_bbt) = ChannelBadBlockTable::restore_state_from_boot::<MM>(ch_id) else {
                 return Err(BadBlockTableError::RestoreTable);
             };
-            bbt.channel_bad_block_tables[ch_id] = ch_bbt;
+            uninit_ch_btt.write(ch_bbt);
         }
 
+        // SAFETY: Every element has been written/initialized.
+        let ch_bbts = unsafe {
+            transmute::<
+                [MaybeUninit<ChannelBadBlockTable>; config::N_CHANNELS],
+                [ChannelBadBlockTable; config::N_CHANNELS],
+            >(ch_bbts)
+        };
+
+        let bbt = BadBlockTable {
+            channel_bad_block_tables: ch_bbts,
+        };
         Ok(bbt)
     }
 }

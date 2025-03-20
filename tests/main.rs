@@ -5,9 +5,8 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(rv_unit::test_runner)]
 
-use ftl::config::{TOTAL_GB, TOTAL_MB};
+use ftl::config::TOTAL_GB;
 use riscv_rt::entry;
-use rv_unit::println_red;
 use semihosting::println;
 
 // -- Custom panic handler
@@ -22,6 +21,7 @@ pub fn panic(info: &core::panic::PanicInfo) -> ! {
 fn main() -> ! {
     #[cfg(not(feature = "qemu"))]
     {
+        use rv_unit::println_red;
         println_red!("--------------------------");
         println_red!("WARNING!: NOT RUNNING WITH TEST SIZES FOR QEMU");
         println_red!("Use: cargo t --features qemu");

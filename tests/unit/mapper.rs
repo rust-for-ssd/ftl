@@ -14,15 +14,37 @@ pub fn initializes_new_mapper_of_crrect_size() {
 #[test_case]
 pub fn physical_page_address_to_compact_physical_page_address() {
     let ppa = PhysicalPageAddress {
-        channel_id: 1,
-        lun_id: 1,
+        channel_id: 0,
+        lun_id: 0,
         plane_id: 0,
-        block_id: 1,
+        block_id: 0,
+        page_id: 0,
+    };
+    let cppa: CompactPhysicalPageAddress = ppa.into();
+    assert_eq!(cppa, 0);
+
+    let ppa = PhysicalPageAddress {
+        channel_id: 0,
+        lun_id: 0,
+        plane_id: 0,
+        block_id: 0,
         page_id: 1,
     };
     let cppa: CompactPhysicalPageAddress = ppa.into();
+    assert_eq!(cppa, 1);
 
-    // assert_eq!(cppa,)
+    let ppa = PhysicalPageAddress {
+        channel_id: 0,
+        lun_id: 1,
+        plane_id: 0,
+        block_id: 0,
+        page_id: 0,
+    };
+    let cppa: CompactPhysicalPageAddress = ppa.into();
+    assert_eq!(
+        cppa,
+        ftl::config::BLOCKS_PER_LUN * ftl::config::PAGES_PER_BLOCK
+    );
 }
 
 #[test_case]

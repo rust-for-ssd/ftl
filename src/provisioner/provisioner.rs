@@ -86,9 +86,10 @@ struct Page {
     in_use: bool,
 }
 
-pub enum ProvisionError {
+pub enum ProvisionError<'s> {
     NoFreeBlock,
     NoFreePage,
+    BlockErr(&'s str),
 }
 
 impl ChannelProvisioner {
@@ -121,7 +122,9 @@ impl ChannelProvisioner {
                     block_id: block.id,
                 };
 
-                lun.used.push(block);
+                let Ok(()) = lun.used.push(block) else {
+                    return Err(ProvisionError::BlockErr("Could not push block to used."));
+                };
                 return Ok(pba);
             }
         }
@@ -146,12 +149,20 @@ impl ChannelProvisioner {
 
                         // if it is the last page not in use in the block, then move block to used
                         if idx == block.pages.len() - 1 {
-                            lun.used.push(Block {
+                            let Ok(()) = lun.used.push(Block {
                                 id: block.id,
                                 plane_id: block.plane_id,
-                            });
+                            }) else {
+                                return Err(ProvisionError::BlockErr(
+                                    "Could not push block to used.",
+                                ));
+                            };
                         } else {
-                            lun.partially_used.push(block);
+                            let Ok(()) = lun.partially_used.push(block) else {
+                                return Err(ProvisionError::BlockErr(
+                                    "Could not push block to partially used.",
+                                ));
+                            };
                         }
 
                         let ppa = PhysicalPageAddress {
@@ -176,7 +187,11 @@ impl ChannelProvisioner {
                 };
                 block_with_page_info.pages[0] = Page { in_use: true };
 
-                lun.partially_used.push(block_with_page_info);
+                let Ok(()) = lun.partially_used.push(block_with_page_info) else {
+                    return Err(ProvisionError::BlockErr(
+                        "Could not push block to partially used.",
+                    ));
+                };
                 let ppa = PhysicalPageAddress {
                     channel_id: self.channel_id,
                     lun_id: self.last_lun_picked,

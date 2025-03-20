@@ -15,11 +15,12 @@
             nixpkgs.legacyPackages.${system}.pkgsCross.riscv64-embedded;
           rust-bin = rust-overlay.lib.mkRustBin { } pkgsCross.buildPackages;
         in pkgsCross.callPackage
-        ({ mkShell, pkg-config, qemu, rust-analyzer, stdenv }:
+        ({ mkShell, pkg-config, qemu, bacon, rust-analyzer, stdenv }:
           mkShell {
             nativeBuildInputs = [ rust-bin.nightly.latest.default pkg-config ];
 
-            depsBuildBuild = [ qemu rust-analyzer pkgsCross.buildPackages.gdb ];
+            depsBuildBuild =
+              [ qemu rust-analyzer bacon pkgsCross.buildPackages.gdb ];
 
             env = {
               # Makes rust-gdb use the riscv64-none-elf-gdb binary
