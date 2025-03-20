@@ -1,6 +1,8 @@
-use crate::config::{BLOCKS_PER_PLANE, N_CHANNELS, PAGES_PER_BLOCK, PLANES_PER_LUN, TOTAL_PAGES};
+use crate::config::{
+    BLOCKS_PER_PLANE, LUNS_PER_CHANNEL, N_CHANNELS, PAGES_PER_BLOCK, PLANES_PER_LUN, TOTAL_PAGES,
+};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PhysicalPageAddress {
     pub channel: usize,
     pub lun: usize,
@@ -37,6 +39,12 @@ impl From<CompactPhysicalPageAddress> for PhysicalPageAddress {
         let block = remainder / PAGES_PER_BLOCK;
         let page = remainder % PAGES_PER_BLOCK;
 
+        debug_assert!(channel < N_CHANNELS);
+        debug_assert!(lun < LUNS_PER_CHANNEL);
+        debug_assert!(plane < PLANES_PER_LUN);
+        debug_assert!(block < BLOCKS_PER_PLANE);
+        debug_assert!(page < PAGES_PER_BLOCK);
+
         PhysicalPageAddress {
             channel,
             lun,
@@ -49,6 +57,12 @@ impl From<CompactPhysicalPageAddress> for PhysicalPageAddress {
 
 impl Into<usize> for PhysicalPageAddress {
     fn into(self) -> CompactPhysicalPageAddress {
+        debug_assert!(self.channel < N_CHANNELS);
+        debug_assert!(self.lun < LUNS_PER_CHANNEL);
+        debug_assert!(self.plane < PLANES_PER_LUN);
+        debug_assert!(self.block < BLOCKS_PER_PLANE);
+        debug_assert!(self.page < PAGES_PER_BLOCK);
+
         let channel_offset = self.channel * (TOTAL_PAGES / N_CHANNELS);
         let lun_offset = self.lun * PLANES_PER_LUN * BLOCKS_PER_PLANE * PAGES_PER_BLOCK;
         let plane_offset = self.plane * BLOCKS_PER_PLANE * PAGES_PER_BLOCK;

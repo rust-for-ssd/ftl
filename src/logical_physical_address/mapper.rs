@@ -44,10 +44,20 @@ impl L2pMapper {
     ) -> Option<CompactPhysicalPageAddress> {
         self.logical_to_physical[lpa]
     }
+
+    pub fn get_size(&self) -> Result<usize, MappingError> {
+        if self.logical_to_physical.len() != self.physical_to_logical.len() {
+            return Err(MappingError::SizeError);
+        } else {
+            return Ok(self.logical_to_physical.len());
+        }
+    }
 }
 
+#[derive(PartialEq, Debug)]
 pub enum MappingError {
     ProvisionError,
     LogicalPageOutOfBounds,
     PhysicalPageOutOfBounds,
+    SizeError
 }
