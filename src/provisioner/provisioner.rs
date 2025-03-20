@@ -1,10 +1,8 @@
-use crate::bad_block_table::table::{BadBlockTable, ChannelBadBlockTable};
+use crate::config;
 use crate::{
-    bad_block_table::table::BlockStatus,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     utils::ring_buffer::RingBuffer,
 };
-use crate::{config, core};
 
 // Page provison: gives a physical page adress (ppa) to an available page
 // - To provision a block we need:
@@ -58,9 +56,9 @@ impl Provisoner {
 
 #[derive(Copy, Clone)]
 pub struct ChannelProvisioner {
-   pub luns: [LUN; config::LUNS_PER_CHANNEL],
-   pub last_lun_picked: usize,
-   pub channel_id: usize,
+    pub luns: [LUN; config::LUNS_PER_CHANNEL],
+    pub last_lun_picked: usize,
+    pub channel_id: usize,
 }
 
 #[derive(Copy, Clone)]

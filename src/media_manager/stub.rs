@@ -16,21 +16,21 @@ impl MediaManager {
 }
 
 impl MediaOperations for MediaManager {
-    fn erase_block(&self, pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
+    fn erase_block(_pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
 
-    fn read_page<T>(&self, ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
+    fn read_page<T>(_ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
         // We simulate
         let page = [0; config::BYTES_PER_PAGE];
         Ok(unsafe { transmute_copy::<_, T>(&page) })
     }
 
-    fn read_block<T>(&self, pba: &PhysicalBlockAddress) -> Result<T, MediaManagerError> {
+    fn read_block<T>(_pba: &PhysicalBlockAddress) -> Result<T, MediaManagerError> {
         todo!()
     }
 
-    fn write_page(&self, ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
+    fn write_page(_ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
 }
