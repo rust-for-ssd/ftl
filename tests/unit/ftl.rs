@@ -7,41 +7,39 @@ use ftl::{
     media_manager::operations::{MediaManagerError, MediaOperations},
     unsafeprintln,
 };
+use semihosting::println;
 
 pub struct MockMediaManager {}
 
-impl MockMediaManager {
-    pub const fn new() -> Self {
-        MockMediaManager {}
-    }
-}
-
 impl MediaOperations for MockMediaManager {
-    fn erase_block(&self, _pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
+    fn erase_block(_pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }
 
-    fn read_page<T>(&self, _ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
+    fn read_page<T>(_ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
         // We simulate
+        println!("I AM A MOCK");
         let page = [0; config::BYTES_PER_PAGE];
         Ok(unsafe { transmute_copy::<_, T>(&page) })
     }
 
-    fn read_block<T>(&self, _pba: &PhysicalBlockAddress) -> Result<T, MediaManagerError> {
+    fn read_block<T>(_pba: &PhysicalBlockAddress) -> Result<T, MediaManagerError> {
         todo!()
     }
 
-    fn write_page(&self, _ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
+    fn write_page(_ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
+        println!("I AM A MOCK");
         Ok(())
     }
 }
 
 #[test_case]
 pub fn ftl() {
-    // let mm: MockMediaManager = MockMediaManager::new();
-    // let _global_ftl: FTL<MockMediaManager> = FTL::new(mm);
-
-    let ftl_size = size_of::<FTL<MockMediaManager>>();
-    // let global_ftl_size = size_of
-    unsafeprintln!("FTL size is {} MB", ftl_size as f32 / (1024.0 * 1024.0));
+    let mut global_ftl: FTL<MockMediaManager> = FTL::new();
+    let content = global_ftl.write_page(100);
+    match content {
+        Err(ftl::ftl::FtlErr::WritePage(s)) => println!("{}", s),
+        Err(_) => println!("ERR"),
+        Ok(_) => println!("OK"),
+    }
 }
