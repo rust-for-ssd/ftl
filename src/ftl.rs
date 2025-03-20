@@ -43,12 +43,18 @@ impl<MO: MediaOperations> FTL<MO> {
                     for (block_idx, block_status) in plane.blocks.iter().enumerate() {
                         if *block_status == BlockStatus::Good {
                             // TODO make this a method in the provisoner and set fields to private
-                            self.provisioner.channel_provisioners[channel_idx].luns[lun_idx]
+                            let Ok(()) = self.provisioner.channel_provisioners[channel_idx].luns
+                                [lun_idx]
                                 .free
                                 .push(Block {
                                     id: block_idx,
                                     plane_id: plane_idx,
                                 })
+                            else {
+                                return Err(FtlErr::Init(
+                                    "Could not push to free list in factory init",
+                                ));
+                            };
                         }
                     }
                 }
