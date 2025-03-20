@@ -60,7 +60,7 @@ fn factory_init_get_block_status<MO: MediaOperations>(pba: &PhysicalBlockAddress
         return BlockStatus::Reserved;
     }
 
-    match MO::read_block(pba) {
+    match MO::erase_block(pba) {
         Ok(()) => BlockStatus::Good,
         Err(_) => BlockStatus::Bad,
     }
@@ -126,7 +126,7 @@ impl ChannelBadBlockTable {
             page: self.current_page,
         };
 
-        return MO::read_page(ppa);
+        return MO::write_page(ppa);
     }
 
     // assumption: the bb table can be contained in a single page

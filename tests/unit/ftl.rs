@@ -1,11 +1,9 @@
 use core::mem::{size_of, transmute_copy};
-use ftl::utils::print::QemuUart;
 use ftl::{
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     ftl::FTL,
     media_manager::operations::{MediaManagerError, MediaOperations},
-    unsafeprintln,
 };
 use semihosting::println;
 
@@ -16,9 +14,10 @@ impl MediaOperations for MockMediaManager {
         Ok(())
     }
 
-    fn read_page<T>(_ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
+    fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
         // We simulate
-        println!("I AM A MOCK");
+        println!("Reading from to ppa {:?}", ppa);
+
         let page = [0; config::BYTES_PER_PAGE];
         Ok(unsafe { transmute_copy::<_, T>(&page) })
     }
@@ -27,16 +26,20 @@ impl MediaOperations for MockMediaManager {
         todo!()
     }
 
-    fn write_page(_ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
-        println!("I AM A MOCK");
+    fn write_page(ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
+        println!("Writing to ppa {:?}", ppa);
         Ok(())
     }
 }
 
 #[test_case]
 pub fn ftl() {
-    let mut global_ftl: FTL<MockMediaManager> = FTL::new();
-    let content = global_ftl.write_page(100);
+    let mut ftl: FTL<MockMediaManager> = FTL::new();
+    ftl.init();
+
+    let content = ftl.write_page(100);
+    let content = ftl.write_page(101);
+
     match content {
         Err(ftl::ftl::FtlErr::WritePage(s)) => println!("{}", s),
         Err(_) => println!("ERR"),

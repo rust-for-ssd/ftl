@@ -1,6 +1,6 @@
 use crate::config::{BLOCKS_PER_PLANE, N_CHANNELS, PAGES_PER_BLOCK, PLANES_PER_LUN, TOTAL_PAGES};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct PhysicalPageAddress {
     pub channel: usize,
     pub lun: usize,
@@ -18,7 +18,8 @@ pub struct PhysicalBlockAddress {
 
 impl PhysicalPageAddress {
     pub fn is_reserved(&self) -> bool {
-        todo!()
+        // We reserve block 0 for bbt metadata by choice
+        return self.block == 0;
     }
 }
 
@@ -58,6 +59,7 @@ impl Into<usize> for PhysicalPageAddress {
 
 impl PhysicalBlockAddress {
     pub fn is_reserved(&self) -> bool {
-        todo!()
+        // We reserve block 0 for bbt metadata by choice
+        return self.block == 0;
     }
 }

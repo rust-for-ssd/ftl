@@ -60,7 +60,6 @@ impl<MO: MediaOperations> FTL<MO> {
         };
 
         let Ok(content): Result<PageContent, MediaManagerError> =
-            // self.mm.read_page(&PhysicalPageAddress::from(ppa))
             MO::read_page(&PhysicalPageAddress::from(ppa))
         else {
             return Err(FtlErr::ReadPage);

@@ -5,10 +5,10 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(rv_unit::test_runner)]
 
-use ftl::config::{TOTAL_MB, TOTAL_GB};
-use ftl::unsafeprintln;
-use ftl::utils::print::QemuUart;
+use ftl::config::{TOTAL_GB, TOTAL_MB};
 use riscv_rt::entry;
+use rv_unit::println_red;
+use semihosting::println;
 
 // -- Custom panic handler
 #[panic_handler]
@@ -20,9 +20,17 @@ pub fn panic(info: &core::panic::PanicInfo) -> ! {
 
 #[entry]
 fn main() -> ! {
-    unsafeprintln!("--------------------------");
-    unsafeprintln!("Testing SSD of size {} GB", TOTAL_GB);
-    unsafeprintln!("--------------------------");
+    #[cfg(not(feature = "qemu"))]
+    {
+        println_red!("--------------------------");
+        println_red!("WARNING!: NOT RUNNING WITH TEST SIZES FOR QEMU");
+        println_red!("Use: cargo t --features qemu");
+        println_red!("--------------------------");
+    }
+
+    println!("--------------------------");
+    println!("Testing SSD of size {} GB", TOTAL_GB);
+    println!("--------------------------");
 
     test_main();
     loop {}
