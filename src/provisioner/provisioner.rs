@@ -115,10 +115,10 @@ impl ChannelProvisioner {
             // 5. return the pba
             if let Some(block) = lun.free.pop() {
                 let pba = PhysicalBlockAddress {
-                    channel: self.channel_id,
-                    lun: self.last_lun_picked,
-                    plane: block.plane_id,
-                    block: block.id,
+                    channel_id: self.channel_id,
+                    lun_id: self.last_lun_picked,
+                    plane_id: block.plane_id,
+                    block_id: block.id,
                 };
 
                 lun.used.push(block);
@@ -155,11 +155,11 @@ impl ChannelProvisioner {
                         }
 
                         let ppa = PhysicalPageAddress {
-                            channel: self.channel_id,
-                            lun: lun_id,
-                            plane: block.plane_id,
-                            block: block.id,
-                            page: idx,
+                            channel_id: self.channel_id,
+                            lun_id,
+                            plane_id: block.plane_id,
+                            block_id: block.id,
+                            page_id: idx,
                         };
                         return Ok(ppa);
                     }
@@ -178,11 +178,11 @@ impl ChannelProvisioner {
 
                 lun.partially_used.push(block_with_page_info);
                 let ppa = PhysicalPageAddress {
-                    channel: self.channel_id,
-                    lun: self.last_lun_picked,
-                    plane: block.plane_id,
-                    block: block.id,
-                    page: 0,
+                    channel_id: self.channel_id,
+                    lun_id: self.last_lun_picked,
+                    plane_id: block.plane_id,
+                    block_id: block.id,
+                    page_id: 0,
                 };
                 return Ok(ppa);
             }

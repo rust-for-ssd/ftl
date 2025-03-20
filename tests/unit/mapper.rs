@@ -14,11 +14,11 @@ pub fn initializes_new_mapper_of_crrect_size() {
 #[test_case]
 pub fn physical_page_address_to_compact_physical_page_address() {
     let ppa = PhysicalPageAddress {
-        channel: 1,
-        lun: 1,
-        plane: 0,
-        block: 1,
-        page: 1,
+        channel_id: 1,
+        lun_id: 1,
+        plane_id: 0,
+        block_id: 1,
+        page_id: 1,
     };
     let cppa: CompactPhysicalPageAddress = ppa.into();
 
@@ -28,11 +28,11 @@ pub fn physical_page_address_to_compact_physical_page_address() {
 #[test_case]
 pub fn compact_physical_page_address_to_physical_page_address() {
     let ppa = PhysicalPageAddress {
-        channel: 1,
-        lun: 1,
-        plane: 0,
-        block: 1,
-        page: 1,
+        channel_id: 1,
+        lun_id: 1,
+        plane_id: 0,
+        block_id: 1,
+        page_id: 1,
     };
 
     let cppa: CompactPhysicalPageAddress = ppa.into();
@@ -47,11 +47,11 @@ pub fn set_address_pairs() {
     let mut mapper = L2pMapper::new();
     let lpa = 42;
     let ppa = PhysicalPageAddress {
-        channel: 1,
-        lun: 1,
-        plane: 0,
-        block: 1,
-        page: 1,
+        channel_id: 1,
+        lun_id: 1,
+        plane_id: 0,
+        block_id: 1,
+        page_id: 1,
     };
     let cppa: CompactPhysicalPageAddress = ppa.into();
 
@@ -69,11 +69,11 @@ pub fn set_invalid_logical_addr() {
     let mut mapper = L2pMapper::new();
     let lpa_too_large = TOTAL_PAGES + 1;
     let ppa = PhysicalPageAddress {
-        channel: 1,
-        lun: 1,
-        plane: 0,
-        block: 1,
-        page: 1,
+        channel_id: 1,
+        lun_id: 1,
+        plane_id: 0,
+        block_id: 1,
+        page_id: 1,
     };
     let cppa: CompactPhysicalPageAddress = ppa.into();
 

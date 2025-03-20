@@ -117,10 +117,10 @@ impl ChannelBadBlockTable {
             for (plane_id, plane) in lun.planes.iter_mut().enumerate() {
                 for (block_id, block) in plane.blocks.iter_mut().enumerate() {
                     let pba: PhysicalBlockAddress = PhysicalBlockAddress {
-                        channel: self.channel_id,
-                        lun: lun_id,
-                        plane: plane_id,
-                        block: block_id,
+                        channel_id: self.channel_id,
+                        lun_id,
+                        plane_id,
+                        block_id,
                     };
 
                     *block = factory_init_get_block_status::<MO>(&pba);
@@ -140,11 +140,11 @@ impl ChannelBadBlockTable {
         self.version += 1;
 
         let ppa = &PhysicalPageAddress {
-            channel: self.channel_id,
-            lun: 0,
-            plane: 0,
-            block: 0,
-            page: self.current_page,
+            channel_id: self.channel_id,
+            lun_id: 0,
+            plane_id: 0,
+            block_id: 0,
+            page_id: self.current_page,
         };
 
         return MO::write_page(ppa);
@@ -158,11 +158,11 @@ impl ChannelBadBlockTable {
 
         for page in 0..config::PAGES_PER_BLOCK {
             let ppa = &PhysicalPageAddress {
-                channel: channel_id,
-                lun: 0,
-                plane: 0,
-                block: 0,
-                page,
+                channel_id,
+                lun_id: 0,
+                plane_id: 0,
+                block_id: 0,
+                page_id: page,
             };
 
             if let Ok(table_from_disk) = MO::read_page::<ChannelBadBlockTable>(ppa) {
@@ -182,8 +182,8 @@ impl ChannelBadBlockTable {
             return BlockStatus::Reserved;
         }
 
-        let lun = self.luns[pba.lun];
-        let plane = lun.planes[pba.plane as usize];
-        return plane.blocks[pba.block];
+        let lun = self.luns[pba.lun_id];
+        let plane = lun.planes[pba.plane_id as usize];
+        return plane.blocks[pba.block_id];
     }
 }

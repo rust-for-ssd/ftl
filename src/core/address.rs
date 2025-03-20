@@ -4,24 +4,24 @@ use crate::config::{
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PhysicalPageAddress {
-    pub channel: usize,
-    pub lun: usize,
-    pub plane: usize,
-    pub block: usize,
-    pub page: usize,
+    pub channel_id: usize,
+    pub lun_id: usize,
+    pub plane_id: usize,
+    pub block_id: usize,
+    pub page_id: usize,
 }
 
 pub struct PhysicalBlockAddress {
-    pub channel: usize,
-    pub lun: usize,
-    pub plane: usize,
-    pub block: usize,
+    pub channel_id: usize,
+    pub lun_id: usize,
+    pub plane_id: usize,
+    pub block_id: usize,
 }
 
 impl PhysicalPageAddress {
     pub fn is_reserved(&self) -> bool {
         // We reserve block 0 for bbt metadata by choice
-        return self.block == 0;
+        return self.block_id == 0;
     }
 }
 
@@ -46,34 +46,34 @@ impl From<CompactPhysicalPageAddress> for PhysicalPageAddress {
         debug_assert!(page < PAGES_PER_BLOCK);
 
         PhysicalPageAddress {
-            channel,
-            lun,
-            plane,
-            block,
-            page,
+            channel_id: channel,
+            lun_id: lun,
+            plane_id: plane,
+            block_id: block,
+            page_id: page,
         }
     }
 }
 
 impl Into<usize> for PhysicalPageAddress {
     fn into(self) -> CompactPhysicalPageAddress {
-        debug_assert!(self.channel < N_CHANNELS);
-        debug_assert!(self.lun < LUNS_PER_CHANNEL);
-        debug_assert!(self.plane < PLANES_PER_LUN);
-        debug_assert!(self.block < BLOCKS_PER_PLANE);
-        debug_assert!(self.page < PAGES_PER_BLOCK);
+        debug_assert!(self.channel_id < N_CHANNELS);
+        debug_assert!(self.lun_id < LUNS_PER_CHANNEL);
+        debug_assert!(self.plane_id < PLANES_PER_LUN);
+        debug_assert!(self.block_id < BLOCKS_PER_PLANE);
+        debug_assert!(self.page_id < PAGES_PER_BLOCK);
 
-        let channel_offset = self.channel * (TOTAL_PAGES / N_CHANNELS);
-        let lun_offset = self.lun * PLANES_PER_LUN * BLOCKS_PER_PLANE * PAGES_PER_BLOCK;
-        let plane_offset = self.plane * BLOCKS_PER_PLANE * PAGES_PER_BLOCK;
-        let block_offset = self.block * PAGES_PER_BLOCK;
-        channel_offset + lun_offset + plane_offset + block_offset + self.page
+        let channel_offset = self.channel_id * (TOTAL_PAGES / N_CHANNELS);
+        let lun_offset = self.lun_id * PLANES_PER_LUN * BLOCKS_PER_PLANE * PAGES_PER_BLOCK;
+        let plane_offset = self.plane_id * BLOCKS_PER_PLANE * PAGES_PER_BLOCK;
+        let block_offset = self.block_id * PAGES_PER_BLOCK;
+        channel_offset + lun_offset + plane_offset + block_offset + self.page_id
     }
 }
 
 impl PhysicalBlockAddress {
     pub fn is_reserved(&self) -> bool {
         // We reserve block 0 for bbt metadata by choice
-        return self.block == 0;
+        return self.block_id == 0;
     }
 }

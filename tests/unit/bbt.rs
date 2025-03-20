@@ -14,10 +14,10 @@ impl MediaOperations for OkMediaManager {
     fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         match pba {
             PhysicalBlockAddress {
-                channel: 0,
-                lun: 0,
-                plane: 0,
-                block: 2,
+                channel_id: 0,
+                lun_id: 0,
+                plane_id: 0,
+                block_id: 2,
             } => Err(MediaManagerError::Erase),
             _ => Ok(()),
         }
@@ -26,11 +26,11 @@ impl MediaOperations for OkMediaManager {
     fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
         match ppa {
             PhysicalPageAddress {
-                channel: ch_id,
-                lun: 0,
-                plane: 0,
-                block: 0,
-                page: 0,
+                channel_id: ch_id,
+                lun_id: 0,
+                plane_id: 0,
+                block_id: 0,
+                page_id: 0,
             } => {
                 let mut ch_bbt = ChannelBadBlockTable::new(*ch_id);
                 ch_bbt.luns[0].planes[0].blocks[1] = BlockStatus::Bad;
@@ -80,25 +80,25 @@ pub fn factory_init() {
 
     let ch_bbt = bbt.channel_bad_block_tables[0];
     let pba = PhysicalBlockAddress {
-        channel: 0,
-        lun: 0,
-        plane: 0,
-        block: 2,
+        channel_id: 0,
+        lun_id: 0,
+        plane_id: 0,
+        block_id: 2,
     };
     assert_eq!(ch_bbt.get_block_status(&pba), BlockStatus::Bad);
 
     let pba = PhysicalBlockAddress {
-        channel: 0,
-        lun: 2,
-        plane: 0,
-        block: 3,
+        channel_id: 0,
+        lun_id: 2,
+        plane_id: 0,
+        block_id: 3,
     };
     assert_eq!(ch_bbt.get_block_status(&pba), BlockStatus::Good);
     let pba = PhysicalBlockAddress {
-        channel: 0,
-        lun: 0,
-        plane: 0,
-        block: 0,
+        channel_id: 0,
+        lun_id: 0,
+        plane_id: 0,
+        block_id: 0,
     };
     assert_eq!(ch_bbt.get_block_status(&pba), BlockStatus::Reserved);
 
@@ -111,10 +111,10 @@ pub fn block_status() {
     let bbt = BadBlockTable::new();
     let mut ch_bbt = bbt.channel_bad_block_tables[0];
     let pba = PhysicalBlockAddress {
-        channel: 0,
-        lun: 2,
-        plane: 0,
-        block: 3,
+        channel_id: 0,
+        lun_id: 2,
+        plane_id: 0,
+        block_id: 3,
     };
     assert_eq!(ch_bbt.get_block_status(&pba), BlockStatus::Good);
 
@@ -130,10 +130,10 @@ pub fn bbt_block_reserved() {
     let bbt = BadBlockTable::new();
     let ch_bbt = bbt.channel_bad_block_tables[0];
     let pba = PhysicalBlockAddress {
-        channel: 0,
-        lun: 0,
-        plane: 0,
-        block: 0,
+        channel_id: 0,
+        lun_id: 0,
+        plane_id: 0,
+        block_id: 0,
     };
 
     assert_eq!(ch_bbt.get_block_status(&pba), BlockStatus::Reserved);
@@ -146,25 +146,25 @@ pub fn restore_state_from_boot() {
 
     let ch_bbt = res.unwrap().channel_bad_block_tables[0];
     let pba = PhysicalBlockAddress {
-        channel: 0,
-        lun: 0,
-        plane: 0,
-        block: 1,
+        channel_id: 0,
+        lun_id: 0,
+        plane_id: 0,
+        block_id: 1,
     };
     assert_eq!(ch_bbt.get_block_status(&pba), BlockStatus::Bad);
 
     let pba = PhysicalBlockAddress {
-        channel: 0,
-        lun: 2,
-        plane: 0,
-        block: 3,
+        channel_id: 0,
+        lun_id: 2,
+        plane_id: 0,
+        block_id: 3,
     };
     assert_eq!(ch_bbt.get_block_status(&pba), BlockStatus::Good);
     let pba = PhysicalBlockAddress {
-        channel: 0,
-        lun: 0,
-        plane: 0,
-        block: 0,
+        channel_id: 0,
+        lun_id: 0,
+        plane_id: 0,
+        block_id: 0,
     };
     assert_eq!(ch_bbt.get_block_status(&pba), BlockStatus::Reserved);
 
