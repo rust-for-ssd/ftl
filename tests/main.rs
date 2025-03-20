@@ -5,7 +5,7 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(rv_unit::test_runner)]
 
-use ftl::config::{TOTAL_MB, TOTAL_GB};
+use ftl::config::{TOTAL_GB};
 use ftl::unsafeprintln;
 use ftl::utils::print::QemuUart;
 use riscv_rt::entry;

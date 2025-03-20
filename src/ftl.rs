@@ -4,28 +4,23 @@ use crate::core::address::{LogicalPageAddress, PhysicalPageAddress};
 use crate::gc::gc::GarbageCollector;
 use crate::logical_physical_address::mapper::L2pMapper;
 use crate::media_manager::operations::{MediaManagerError, MediaOperations};
-use crate::media_manager::stub::MediaManager;
+use crate::media_manager::stub::MEDIA_MANAGER;
 use crate::provisioner::provisioner::{Block, Provisoner};
 
-pub struct FTL<MediaManager: MediaOperations> {
+pub struct FTL {
     pub l2p_map: L2pMapper,
     pub provisioner: Provisoner,
     pub bbt: BadBlockTable,
     pub gc: GarbageCollector,
-    pub mm: MediaManager,
 }
 
-const MM: MediaManager = MediaManager::new();
-pub static GLOBAL_FTL: FTL<MediaManager> = FTL::new(MM);
-
-impl<MediaManager: MediaOperations> FTL<MediaManager> {
-    pub const fn new(mm: MediaManager) -> Self {
+impl FTL {
+    pub const fn new() -> Self {
         FTL {
             l2p_map: L2pMapper::new(),
             provisioner: Provisoner::new(),
             bbt: BadBlockTable::new(),
             gc: GarbageCollector::new(),
-            mm,
         }
     }
 
@@ -60,7 +55,7 @@ impl<MediaManager: MediaOperations> FTL<MediaManager> {
 
         let Ok(content): Result<PageContent, MediaManagerError> =
             // self.mm.read_page(&PhysicalPageAddress::from(ppa))
-            self.mm.read_page(&PhysicalPageAddress::from(ppa))
+            MEDIA_MANAGER.read_page(&PhysicalPageAddress::from(ppa))
         else {
             return Err(FtlErr::ReadPage);
         };
@@ -80,7 +75,7 @@ impl<MediaManager: MediaOperations> FTL<MediaManager> {
         };
 
         // Write the actual data with the media manager
-        let Ok(()) = self.mm.write_page(&ppa) else {
+        let Ok(()) = MEDIA_MANAGER.write_page(&ppa) else {
             return Err(FtlErr::WritePage);
         };
         Ok(())

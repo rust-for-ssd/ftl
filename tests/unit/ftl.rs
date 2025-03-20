@@ -1,4 +1,5 @@
 use core::mem::{size_of, transmute_copy};
+use ftl::core::address::LogicalPageAddress;
 use ftl::utils::print::QemuUart;
 use ftl::{
     config,
@@ -41,7 +42,43 @@ pub fn ftl() {
     // let mm: MockMediaManager = MockMediaManager::new();
     // let _global_ftl: FTL<MockMediaManager> = FTL::new(mm);
 
-    let ftl_size = size_of::<FTL<MockMediaManager>>();
+    let ftl_size = size_of::<FTL>();
     // let global_ftl_size = size_of
+    let mm_size = size_of::<MockMediaManager>();
+
+    // Override the global MEDIA_MANAGER for testing
+    // pub static MEDIA_MANAGER: MockMediaManager = MockMediaManager::new();
+    let ftl: FTL = FTL::new();
+    let content = ftl.read_page(1);
+    match content {
+        Ok(data) => {
+            // Use the data
+            unsafeprintln!("Page read successfully");
+        },
+        Err(e) => {
+            unsafeprintln!("Failed to read page");
+        }
+    }
+    // let result: Result<[u8; config::BYTES_PER_BLOCK], MediaManagerError> = 
+    // MEDIA_MANAGER.read_block(&PhysicalBlockAddress { 
+    //     channel: 0, 
+    //     lun: 0, 
+    //     plane: 0, 
+    //     block: 0 
+    // });
+
+// Handle the result
+// match result {
+//     Ok(data) => {
+//         // Use the data
+//         unsafeprintln!("Block read successfully");
+//     },
+//     Err(e) => {
+//         unsafeprintln!("Failed to read block");
+//     }
+// }
+    
+
     unsafeprintln!("FTL size is {} MB", ftl_size as f32 / (1024.0 * 1024.0));
+    unsafeprintln!("MM size is {} MB", mm_size as f32 / (1024.0 * 1024.0));
 }

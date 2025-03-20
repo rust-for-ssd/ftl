@@ -1,5 +1,5 @@
 // Configurable
-pub const N_CHANNELS: usize = 64 * 2 * 2 * 2 * 2 * 2;
+pub const N_CHANNELS: usize = 64 * 2;
 pub const LUNS_PER_CHANNEL: usize = 4;
 pub const PLANES_PER_LUN: usize = 1;
 pub const BLOCKS_PER_PLANE: usize = 64; // 1024 might be realistic number, need to update qemu config
@@ -9,6 +9,7 @@ pub const BYTES_PER_PAGE: usize = 8 * 4096; // 4 to 32 kilobytes per page -- thi
 //Derivatives
 pub const TOTAL_BLOCKS: usize = N_CHANNELS * LUNS_PER_CHANNEL * BLOCKS_PER_LUN;
 pub const TOTAL_PAGES: usize = TOTAL_BLOCKS * PAGES_PER_BLOCK;
+pub const BYTES_PER_BLOCK: usize = BYTES_PER_PAGE * PAGES_PER_BLOCK;
 pub const BLOCKS_PER_LUN: usize = BLOCKS_PER_PLANE * PLANES_PER_LUN;
 pub const TOTAL_BYTES: usize = N_CHANNELS
     * LUNS_PER_CHANNEL

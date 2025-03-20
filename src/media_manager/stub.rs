@@ -7,6 +7,7 @@ use core::mem::transmute_copy;
 
 use super::operations::{MediaManagerError, MediaOperations};
 
+pub static MEDIA_MANAGER: MediaManager = MediaManager::new();
 pub struct MediaManager;
 
 impl MediaManager {
