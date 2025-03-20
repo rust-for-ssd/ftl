@@ -75,7 +75,7 @@ pub struct Block {
 }
 
 #[derive(Copy, Clone)]
-struct BlockWithPageInfo {
+pub struct BlockWithPageInfo {
     id: usize,
     plane_id: usize,
     pages: [Page; config::PAGES_PER_BLOCK],
