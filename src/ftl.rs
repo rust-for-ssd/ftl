@@ -30,9 +30,11 @@ impl<MO: MediaOperations> FTL<MO> {
         }
     }
 
-    pub fn init(&mut self) -> () {
+    pub fn init(&mut self) -> Result<(), FtlErr> {
         // Factory init bbt
-        self.bbt.factory_init::<MO>();
+        let Ok(()) = self.bbt.factory_init::<MO>() else {
+            return Err(FtlErr::Init("Bad block table factory init error!"));
+        };
 
         // Add good blocks from bbt to free list in provisioner
         for (channel_idx, ch) in self.bbt.channel_bad_block_tables.iter().enumerate() {
@@ -52,17 +54,18 @@ impl<MO: MediaOperations> FTL<MO> {
                 }
             }
         }
+        Ok(())
     }
 
     pub fn read_page(&self, lpa: LogicalPageAddress) -> Result<PageContent, FtlErr> {
         let Some(ppa) = self.l2p_map.get_physical_address(lpa) else {
-            return Err(FtlErr::ReadPage);
+            return Err(FtlErr::ReadPage("Mapping error!"));
         };
 
         let Ok(content): Result<PageContent, MediaManagerError> =
             MO::read_page(&PhysicalPageAddress::from(ppa))
         else {
-            return Err(FtlErr::ReadPage);
+            return Err(FtlErr::ReadPage("Media manager error!"));
         };
 
         Ok(content)
@@ -90,6 +93,7 @@ impl<MO: MediaOperations> FTL<MO> {
 type PageContent = [u8; config::BYTES_PER_PAGE];
 
 pub enum FtlErr<'a> {
+    Init(&'a str),
     WritePage(&'a str),
-    ReadPage,
+    ReadPage(&'a str),
 }
