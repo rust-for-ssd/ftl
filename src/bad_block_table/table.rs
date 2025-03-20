@@ -1,3 +1,7 @@
+use core::mem::MaybeUninit;
+
+//TODO: we need a function to save the bbt state at some point.
+
 use crate::{
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
@@ -5,6 +9,7 @@ use crate::{
 
 use crate::media_manager::operations::{MediaManagerError, MediaOperations};
 
+#[derive(PartialEq, Debug)]
 pub struct BadBlockTable {
     pub channel_bad_block_tables: [ChannelBadBlockTable; config::N_CHANNELS],
 }
@@ -23,9 +28,24 @@ impl BadBlockTable {
         }
         Ok(())
     }
+
+    pub fn restore_state_from_boot<MO: MediaOperations>() -> Result<Self, BadBlockTableError> {
+        let mut bbt = BadBlockTable {
+            channel_bad_block_tables: unsafe { MaybeUninit::uninit().assume_init() },
+        };
+
+        for ch_id in 0..bbt.channel_bad_block_tables.len() {
+            let Ok(ch_bbt) = ChannelBadBlockTable::restore_state_from_boot::<MO>(ch_id) else {
+                return Err(BadBlockTableError::RestoreTable);
+            };
+            bbt.channel_bad_block_tables[ch_id] = ch_bbt;
+        }
+
+        Ok(bbt)
+    }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct ChannelBadBlockTable {
     pub luns: [LUN; config::LUNS_PER_CHANNEL],
     channel_id: usize,
@@ -33,23 +53,24 @@ pub struct ChannelBadBlockTable {
     version: usize,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct LUN {
     pub planes: [Plane; config::PLANES_PER_LUN],
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Plane {
     pub blocks: [BlockStatus; config::BLOCKS_PER_PLANE],
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum BlockStatus {
     Good,
     Bad,
     Reserved,
 }
 
+#[derive(PartialEq, Debug)]
 pub enum BadBlockTableError {
     FactoryInitTable,
     RestoreTable,
@@ -130,7 +151,7 @@ impl ChannelBadBlockTable {
     }
 
     // assumption: the bb table can be contained in a single page
-    pub fn restore_state_from_boot<MO: MediaOperations>(
+    fn restore_state_from_boot<MO: MediaOperations>(
         channel_id: usize,
     ) -> Result<Self, BadBlockTableError> {
         let mut latest_version = 0;

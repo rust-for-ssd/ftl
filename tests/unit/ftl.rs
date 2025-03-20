@@ -16,7 +16,6 @@ impl MediaOperations for MockMediaManager {
 
     fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError> {
         // We simulate
-        println!("Reading from to ppa {:?}", ppa);
 
         let page = [0; config::BYTES_PER_PAGE];
         Ok(unsafe { transmute_copy::<_, T>(&page) })
@@ -27,7 +26,6 @@ impl MediaOperations for MockMediaManager {
     }
 
     fn write_page(ppa: &PhysicalPageAddress) -> Result<(), MediaManagerError> {
-        println!("Writing to ppa {:?}", ppa);
         Ok(())
     }
 }
