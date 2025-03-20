@@ -37,12 +37,7 @@ pub fn ftl() {
     let mut ftl: FTL<MockMediaManager> = FTL::new();
     ftl.init();
 
-    let content = ftl.write_page(100);
-    let content = ftl.write_page(101);
-
-    match content {
-        Err(ftl::ftl::FtlErr::WritePage(s)) => println!("{}", s),
-        Err(_) => println!("ERR"),
-        Ok(_) => println!("OK"),
+    for lpa in 0..40 {
+        let _ = ftl.write_page(lpa);
     }
 }
