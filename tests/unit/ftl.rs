@@ -3,12 +3,12 @@ use ftl::{
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
     ftl::FTL,
-    media_manager::operations::{MediaManagerError, MediaOperations},
+    media_manager::operations::{MediaManagerError, MediaManager},
 };
 
 pub struct MockMediaManager {}
 
-impl MediaOperations for MockMediaManager {
+impl MediaManager for MockMediaManager {
     fn erase_block(_pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }

@@ -5,34 +5,34 @@ use crate::config;
 use crate::core::address::{LogicalPageAddress, PhysicalPageAddress};
 use crate::gc::gc::GarbageCollector;
 use crate::logical_physical_address::mapper::L2pMapper;
-use crate::media_manager::operations::{MediaManagerError, MediaOperations};
-use crate::media_manager::stub::MediaManager;
+use crate::media_manager::operations::{MediaManager, MediaManagerError};
+use crate::media_manager::stub::MediaManagerStub;
 use crate::provisioner::provisioner::{Block, Provisoner};
 
-pub struct FTL<MO: MediaOperations> {
+pub struct FTL<MM: MediaManager> {
     pub l2p_map: L2pMapper,
     pub provisioner: Provisoner,
     pub bbt: BadBlockTable,
     pub gc: GarbageCollector,
-    phanthom_data: PhantomData<MO>,
+    phanthom_data: PhantomData<MM>,
 }
 
-pub static GLOBAL_FTL: FTL<MediaManager> = FTL::<MediaManager>::new();
+pub static GLOBAL_FTL: FTL<MediaManagerStub> = FTL::<MediaManagerStub>::new();
 
-impl<MO: MediaOperations> FTL<MO> {
+impl<MM: MediaManager> FTL<MM> {
     pub const fn new() -> Self {
-        FTL::<MO> {
+        FTL::<MM> {
             l2p_map: L2pMapper::new(),
             provisioner: Provisoner::new(),
             bbt: BadBlockTable::new(),
             gc: GarbageCollector::new(),
-            phanthom_data: PhantomData::<MO>,
+            phanthom_data: PhantomData::<MM>,
         }
     }
 
     pub fn init(&mut self) -> Result<(), FtlErr> {
         // Factory init bbt
-        let Ok(()) = self.bbt.factory_init::<MO>() else {
+        let Ok(()) = self.bbt.factory_init::<MM>() else {
             return Err(FtlErr::Init("Bad block table factory init error!"));
         };
 
@@ -69,7 +69,7 @@ impl<MO: MediaOperations> FTL<MO> {
         };
 
         let Ok(content): Result<PageContent, MediaManagerError> =
-            MO::read_page(&PhysicalPageAddress::from(ppa))
+            MM::read_page(&PhysicalPageAddress::from(ppa))
         else {
             return Err(FtlErr::ReadPage("Media manager error!"));
         };
@@ -89,7 +89,7 @@ impl<MO: MediaOperations> FTL<MO> {
         };
 
         // Write the actual data with the media manager
-        let Ok(()) = MO::write_page(&ppa) else {
+        let Ok(()) = MM::write_page(&ppa) else {
             return Err(FtlErr::WritePage("Media manager error"));
         };
         Ok(())

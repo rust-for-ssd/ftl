@@ -5,12 +5,12 @@ use ftl::{
     },
     config,
     core::address::{PhysicalBlockAddress, PhysicalPageAddress},
-    media_manager::operations::{MediaManagerError, MediaOperations},
+    media_manager::operations::{MediaManager, MediaManagerError},
 };
 
 pub struct OkMediaManager {}
 
-impl MediaOperations for OkMediaManager {
+impl MediaManager for OkMediaManager {
     fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         match pba {
             PhysicalBlockAddress {
@@ -54,7 +54,7 @@ impl MediaOperations for OkMediaManager {
 
 pub struct ErrMediaManager {}
 
-impl MediaOperations for ErrMediaManager {
+impl MediaManager for ErrMediaManager {
     fn erase_block(_pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         Err(MediaManagerError::Erase)
     }

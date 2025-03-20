@@ -5,17 +5,17 @@ use crate::{
 
 use core::mem::transmute_copy;
 
-use super::operations::{MediaManagerError, MediaOperations};
+use super::operations::{MediaManagerError, MediaManager};
 
-pub struct MediaManager;
+pub struct MediaManagerStub;
 
-impl MediaManager {
+impl MediaManagerStub {
     pub const fn new() -> Self {
-        MediaManager {}
+        MediaManagerStub {}
     }
 }
 
-impl MediaOperations for MediaManager {
+impl MediaManager for MediaManagerStub {
     fn erase_block(_pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError> {
         Ok(())
     }

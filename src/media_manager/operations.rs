@@ -12,7 +12,7 @@ pub enum MediaManagerError {
     Erase,
 }
 
-pub trait MediaOperations {
+pub trait MediaManager {
     fn erase_block(pba: &PhysicalBlockAddress) -> Result<(), MediaManagerError>;
 
     fn read_page<T>(ppa: &PhysicalPageAddress) -> Result<T, MediaManagerError>;
