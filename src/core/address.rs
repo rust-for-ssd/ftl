@@ -11,6 +11,7 @@ pub struct PhysicalPageAddress {
     pub page_id: usize,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PhysicalBlockAddress {
     pub channel_id: usize,
     pub lun_id: usize,

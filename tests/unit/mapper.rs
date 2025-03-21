@@ -2,7 +2,6 @@ use ftl::config::TOTAL_PAGES;
 use ftl::core::address::{CompactPhysicalPageAddress, PhysicalPageAddress};
 use ftl::logical_physical_address::mapper::L2pMapper;
 use ftl::logical_physical_address::mapper::MappingError;
-use semihosting::println;
 
 #[test_case]
 pub fn initializes_new_mapper_of_crrect_size() {
@@ -58,7 +57,7 @@ pub fn compact_physical_page_address_to_physical_page_address() {
     };
 
     let cppa: CompactPhysicalPageAddress = ppa.into();
-    println!("{:?}", cppa);
+
     let ppa_new: PhysicalPageAddress = cppa.into();
 
     assert_eq!(ppa, ppa_new);

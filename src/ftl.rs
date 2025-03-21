@@ -7,11 +7,11 @@ use crate::gc::gc::GarbageCollector;
 use crate::logical_physical_address::mapper::L2pMapper;
 use crate::media_manager::operations::{MediaManager, MediaManagerError};
 use crate::media_manager::stub::MediaManagerStub;
-use crate::provisioner::provisioner::{Block, Provisoner};
+use crate::provisioner::provisioner::{Block, Provisioner};
 
 pub struct FTL<MM: MediaManager> {
     pub l2p_map: L2pMapper,
-    pub provisioner: Provisoner,
+    pub provisioner: Provisioner,
     pub bbt: BadBlockTable,
     pub gc: GarbageCollector,
     phanthom_data: PhantomData<MM>,
@@ -23,7 +23,7 @@ impl<MM: MediaManager> FTL<MM> {
     pub const fn new() -> Self {
         FTL::<MM> {
             l2p_map: L2pMapper::new(),
-            provisioner: Provisoner::new(),
+            provisioner: Provisioner::new(),
             bbt: BadBlockTable::new(),
             gc: GarbageCollector::new(),
             phanthom_data: PhantomData::<MM>,
@@ -80,7 +80,7 @@ impl<MM: MediaManager> FTL<MM> {
     pub fn write_page(&mut self, lpa: LogicalPageAddress) -> Result<(), FtlErr> {
         // Handle metadata in the FTL
         // Get a ppa from the provisoner (provisioners free list are guaranteed to have no bad blocks)
-        let Ok(ppa) = self.provisioner.provison_page() else {
+        let Ok(ppa) = self.provisioner.provision_page() else {
             return Err(FtlErr::WritePage("Provision error!"));
         };
         // Map the logical address we want to write to the physical address from the provisioner
