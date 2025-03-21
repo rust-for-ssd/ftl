@@ -2,12 +2,12 @@ use core::marker::PhantomData;
 
 use crate::bad_block_table::table::{BadBlockTable, BlockStatus};
 use crate::config;
-use crate::core::address::{LogicalPageAddress, PhysicalPageAddress};
+use crate::core::address::{LogicalPageAddress, PhysicalBlockAddress, PhysicalPageAddress};
 use crate::gc::gc::GarbageCollector;
 use crate::logical_physical_address::mapper::L2pMapper;
 use crate::media_manager::operations::{MediaManager, MediaManagerError};
 use crate::media_manager::stub::MediaManagerStub;
-use crate::provisioner::provisioner::{Block, Provisioner};
+use crate::provisioner::provisioner::Provisioner;
 
 pub struct FTL<MM: MediaManager> {
     pub l2p_map: L2pMapper,
@@ -43,14 +43,12 @@ impl<MM: MediaManager> FTL<MM> {
                     for (block_idx, block_status) in plane.blocks.iter().enumerate() {
                         if *block_status == BlockStatus::Good {
                             // TODO make this a method in the provisoner and set fields to private
-                            let Ok(()) = self.provisioner.channel_provisioners[channel_idx].luns
-                                [lun_idx]
-                                .free
-                                .push(Block {
-                                    id: block_idx,
-                                    plane_id: plane_idx,
-                                })
-                            else {
+                            let Ok(()) = self.provisioner.push_free_block(&PhysicalBlockAddress {
+                                channel_id: channel_idx,
+                                lun_id: lun_idx,
+                                plane_id: plane_idx,
+                                block_id: block_idx,
+                            }) else {
                                 return Err(FtlErr::Init(
                                     "Could not push to free list in factory init",
                                 ));

@@ -63,6 +63,16 @@ impl Provisioner {
         }
         Err(ProvisionError::NoFreePage)
     }
+
+    pub fn push_free_block(&mut self, pba: &PhysicalBlockAddress) -> Result<(), ProvisionError> {
+        self.channel_provisioners[pba.channel_id].luns[pba.lun_id]
+            .free
+            .push(Block {
+                id: pba.block_id,
+                plane_id: pba.plane_id,
+            })
+            .map_err(|_| ProvisionError::FreeList("Could not push block to free list."))
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -104,6 +114,7 @@ pub enum ProvisionError<'s> {
     NoFreeBlock,
     NoFreePage,
     BlockErr(&'s str),
+    FreeList(&'s str),
 }
 
 impl ChannelProvisioner {
