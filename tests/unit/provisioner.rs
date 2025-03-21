@@ -192,3 +192,39 @@ pub fn provision_page_with_partially_used_blocks() {
         Err(ftl::provisioner::provisioner::ProvisionError::NoFreePage)
     );
 }
+
+#[test_case]
+pub fn provision_block_from_different_channels() {
+    let mut prov = Provisioner::new();
+
+    // No free blocks when creating new
+    let res = prov.provision_block();
+    assert_eq!(
+        res,
+        Err(ftl::provisioner::provisioner::ProvisionError::NoFreeBlock)
+    );
+
+    let block = Block { id: 3, plane_id: 0 };
+    let res = prov.channel_provisioners[0].luns[0].free.push(block);
+    assert!(res.is_ok());
+    let res = prov.channel_provisioners[2].luns[3].free.push(block);
+    assert!(res.is_ok());
+
+    let size = prov.channel_provisioners[0].luns[0].free.get_size();
+    assert_eq!(size, 1);
+
+    let res = prov.provision_block();
+    assert!(res.is_ok());
+
+    let res = prov.provision_block();
+    assert!(res.is_ok());
+
+    let size = prov.channel_provisioners[0].luns[0].free.get_size();
+    assert_eq!(size, 0);
+
+    let res = prov.provision_block();
+    assert_eq!(
+        res,
+        Err(ftl::provisioner::provisioner::ProvisionError::NoFreeBlock)
+    );
+}
